@@ -69,7 +69,7 @@ async function runSeed() {
     GOR: 'Pralka automatyczna'
   };
 
-  const productsToInsert = [];
+  const productsToInsert: Array<{ brandId: string; symbol: string; ean: string; name: string; description: string; retailPriceNet: number; vatRate: number; netNetPrice: number | null; isAvailable: boolean }> = [];
   for (const brand of insertedBrands) {
     for (let i = 1; i <= 7; i++) {
       const eanPrefix = `590${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;

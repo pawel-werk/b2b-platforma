@@ -1,28 +1,31 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { brands } from "@/db/schema";
+import { buildCorsHeaders, handleOptionsRequest } from "@/lib/public-api/cors";
+import { resolveShop } from "@/lib/public-api/service";
 
-export async function OPTIONS() { return new NextResponse(null, { status: 200 }); }
+export async function OPTIONS(req: Request) {
+  return handleOptionsRequest(req);
+}
 
-export async function GET() {
-  try {
-    const allBrands = await db.select().from(brands);
-    
-    if (allBrands.length === 0) {
-      return NextResponse.json({ error: "Brak jakichkolwiek marek w bazie danych!" }, { status: 404 });
-    }
+export async function GET(req: Request) {
+  const headers = await buildCorsHeaders(req);
+  const { searchParams } = new URL(req.url);
+  const host = searchParams.get("host");
+  const slug = searchParams.get("slug");
 
-    // Bierzemy pierwszą markę z brzegu do trybu deweloperskiego
-    const match = allBrands[0];
-
-    return NextResponse.json({
-      id: match.id,
-      slug: match.slug,
-      name: match.name,
-      prefix: match.prefix,
-      theme: match.theme
-    });
-  } catch (e: any) {
-     return NextResponse.json({ error: e.message }, { status: 500 });
+  if (!host && !slug) {
+    return NextResponse.json(
+      { error: "Wymagany jest parametr ?host= lub ?slug=" },
+      { status: 400, headers }
+    );
   }
+
+  const data = await resolveShop({ host, slug });
+  if (!data) {
+    return NextResponse.json(
+      { error: "Nie znaleziono sklepu dla podanej domeny lub skrótu marki." },
+      { status: 404, headers }
+    );
+  }
+
+  return NextResponse.json(data, { status: 200, headers });
 }

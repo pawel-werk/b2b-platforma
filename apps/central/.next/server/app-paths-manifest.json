@@ -1,4 +1,4 @@
 {
-  "/panel/katalog/[slug]/page": "app/panel/katalog/[slug]/page.js",
-  "/panel/katalog/page": "app/panel/katalog/page.js"
+  "/api/public/v1/shops/resolve/route": "app/api/public/v1/shops/resolve/route.js",
+  "/api/public/v1/shops/[slug]/catalog/route": "app/api/public/v1/shops/[slug]/catalog/route.js"
 }

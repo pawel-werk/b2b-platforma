@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600">
+              <defs>
+                <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#2A322D" />
+                  <stop offset="100%" stop-color="#4F7A5E" />
+                </linearGradient>
+              </defs>
+              <rect width="1600" height="600" fill="url(#g1)" rx="24"/>
+              <circle cx="1350" cy="300" r="220" fill="#ffffff" fill-opacity="0.06"/>
+              <text x="100" y="260" fill="#ffffff" font-family="Plus Jakarta Sans, sans-serif" font-size="56" font-weight="700">Villeroy & Boch – Nowa Kolekcja 2026</text>
+              <text x="100" y="330" fill="#E6EFE8" font-family="Plus Jakarta Sans, sans-serif" font-size="28" font-weight="400">Włoski design i perfekcyjna ergonomia w Twojej kuchni</text>
+            </svg>

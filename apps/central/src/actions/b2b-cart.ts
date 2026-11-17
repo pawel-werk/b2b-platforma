@@ -46,7 +46,7 @@ export async function fetchCartData(cart: Record<string, number>) {
     return { product: p, qty, pricing, itemNet, itemGross };
   });
 
-  let limitData = null;
+  let limitData: { total: number; used: number; remaining: number; afterOrder: number } | null = null;
   if (company.limitNet !== null) {
     const usedRes = await db.execute(sql`SELECT COALESCE(SUM(sum_net), 0) as used FROM orders WHERE company_id = ${companyId} AND payment_status != 'paid'`);
     const used = parseInt((usedRes as any).rows ? (usedRes as any).rows[0].used : (usedRes as any)[0].used) || 0;

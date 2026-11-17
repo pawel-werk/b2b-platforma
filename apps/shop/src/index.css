@@ -1,8 +1,22 @@
-@tailwind base; @tailwind components; @tailwind utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --brand-primary: #000;
-  --brand-bg: #fff;
-  --brand-ink: #111;
-  --radius: 0.5rem;
+  --shop-navy: #0B2545;
+  --shop-accent: #1E5BC6;
 }
-body { background-color: var(--brand-bg); color: var(--brand-ink); font-family: 'Inter', sans-serif; }
+
+body {
+  font-family: "Figtree", sans-serif;
+  color: #14223B;
+  background-color: #FFFFFF;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
