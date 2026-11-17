@@ -1,0 +1,6 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/public/v1/shops/resolve/route": "app/api/public/v1/shops/resolve/route.js",
+  "/api/public/v1/shops/[slug]/route": "app/api/public/v1/shops/[slug]/route.js",
+  "/api/public/v1/shops/[slug]/products/route": "app/api/public/v1/shops/[slug]/products/route.js"
+}

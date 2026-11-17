@@ -7,20 +7,29 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
-          MAIN_HOST: localhost:3000
-          AUTH_SECRET: secret
-          CRON_SECRET: secret
-      - run: npx tsc --noEmit
-      - run: npm run test -- --run
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Test packages
+        run: pnpm run test
+
+      - name: Build apps
+        run: pnpm run build

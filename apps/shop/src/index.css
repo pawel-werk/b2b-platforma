@@ -1,0 +1,8 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+:root {
+  --brand-primary: #000;
+  --brand-bg: #fff;
+  --brand-ink: #111;
+  --radius: 0.5rem;
+}
+body { background-color: var(--brand-bg); color: var(--brand-ink); font-family: 'Inter', sans-serif; }

@@ -1,0 +1,12 @@
+:root {
+  --brand-primary: #4F7A5E;
+  --brand-primary-soft: #E6EFE8;
+  --brand-bg: #FFFFFF;
+  --brand-surface: #F4F6F4;
+  --brand-ink: #2A322D;
+  --brand-muted: #8B938D;
+  --brand-border: #E3E7E3;
+  
+  --radius-card: 24px;
+  --radius-pill: 9999px;
+}
