@@ -3,41 +3,54 @@ import { useState, useTransition } from "react";
 import { toggleProductAvailability } from "@/actions/catalog";
 import { toast } from "sonner";
 
-export function ProductToggle({ id, productName, initialStock }: { id: string, productName: string, initialStock: number }) {
-  const [isAvailable, setIsAvailable] = useState(initialStock > 0);
+export function ProductToggle({ id, productName, initialStock, initialAvailability }: { id: string, productName: string, initialStock?: number, initialAvailability?: string }) {
+  // Zapewniamy kompatybilność wsteczną, jeśli tabela nadal przekazuje "initialStock"
+  const startingState = initialAvailability || (initialStock !== undefined && initialStock > 0 ? "available" : "unavailable");
+  
+  const [availability, setAvailability] = useState(startingState);
   const [isPending, startTransition] = useTransition();
 
-  const handleToggle = () => {
-    const newValue = !isAvailable;
-    setIsAvailable(newValue); // Optymistyczna zmiana w UI
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = e.target.value;
+    const oldValue = availability;
+    
+    setAvailability(newValue); // Optymistyczna, natychmiastowa zmiana w UI
     
     startTransition(async () => {
       try {
+        // Wysyłamy nowy status tekstowy do serwera (wymaga, by akcja akceptowała string)
         await toggleProductAvailability(id, newValue);
-        toast.success(`Zapisano dostępność: ${productName}`, {
+        toast.success(`Zmieniono dostępność: ${productName}`, {
           action: {
             label: "Cofnij",
             onClick: async () => {
-              setIsAvailable(!newValue);
-              await toggleProductAvailability(id, !newValue);
+              setAvailability(oldValue);
+              await toggleProductAvailability(id, oldValue);
               toast("Cofnięto zmianę dostępności.");
             }
           }
         });
-      } catch (e) {
-        setIsAvailable(!newValue); // Wycofanie przy błędzie bazy
-        toast.error("Błąd zapisu w bazie danych.");
+      } catch (err) {
+        setAvailability(oldValue); // Wycofanie przy błędzie bazy danych
+        toast.error("Błąd zapisu w bazie danych. Spróbuj ponownie.");
       }
     });
   };
 
   return (
-    <button 
-      onClick={handleToggle}
+    <select 
+      value={availability}
+      onChange={handleChange}
       disabled={isPending}
-      className={`w-12 h-6 rounded-full relative transition-colors ${isAvailable ? 'bg-brand-primary' : 'bg-brand-border'} ${isPending ? 'opacity-50' : ''}`}
+      className={`text-xs font-semibold py-1.5 px-2 border rounded-md outline-none transition-colors cursor-pointer focus:ring-2 focus:ring-brand-primary ${
+        availability === 'available' ? 'bg-[#E6EFE8] text-[#4F7A5E] border-[#4F7A5E]/20' :
+        availability === 'on_demand' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+        'bg-red-50 text-red-700 border-red-200'
+      } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
-      <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isAvailable ? 'translate-x-6' : 'translate-x-0'}`} />
-    </button>
+      <option value="available">Dostępny w magazynie</option>
+      <option value="on_demand">Na zamówienie</option>
+      <option value="unavailable">Niedostępny</option>
+    </select>
   );
 }

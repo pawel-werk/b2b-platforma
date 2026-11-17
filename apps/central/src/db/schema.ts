@@ -205,3 +205,13 @@ export const settings = pgTable("settings", {
   sellerData: jsonb("seller_data").notNull(),
   ...timestamps,
 });
+// --- LOGI E-MAIL ---
+export const mailLog = pgTable("mail_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  recipient: text("recipient").notNull(),
+  subject: text("subject").notNull(),
+  htmlContent: text("html_content").notNull(),
+  status: text("status").notNull(), // 'sent', 'simulated', 'error'
+  errorMsg: text("error_msg"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

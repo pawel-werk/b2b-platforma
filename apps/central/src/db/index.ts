@@ -1,8 +1,16 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { env } from "@/env";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
+import { Pool as NeonPool } from "@neondatabase/serverless";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { Pool as PgPool } from "pg";
+import * as schema from "./schema";
 
-// Zmuszamy Neona do ignorowania binarnego bufferutil na rzecz standardowego fetch/ws
-neonConfig.fetchConnectionCache = true;
+export let db: any;
 
-const sql = neon(process.env.DATABASE_URL!);
-export const db = drizzle(sql);
+if (env.DB_DRIVER === "neon") {
+  const pool = new NeonPool({ connectionString: env.DATABASE_URL });
+  db = drizzleNeon(pool, { schema });
+} else {
+  const pool = new PgPool({ connectionString: env.DATABASE_URL });
+  db = drizzlePg(pool, { schema });
+}

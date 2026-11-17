@@ -4,13 +4,47 @@ import { products, brands } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-export async function toggleProductAvailability(id: string, isAvailable: boolean) {
-  // STRICT TYPING: w schemacie jest isAvailable (boolean), a nie stock (int)
-  const result = await db.update(products).set({ isAvailable }).where(eq(products.id, id)).returning();
-  
+export type AvailabilityState = "available" | "on_demand" | "unavailable";
+
+export async function toggleProductAvailability(id: string, stateOrBool: AvailabilityState | boolean | string) {
+  const availability: AvailabilityState =
+    typeof stateOrBool === "boolean"
+      ? stateOrBool
+        ? "available"
+        : "unavailable"
+      : stateOrBool === "on_demand" || stateOrBool === "unavailable"
+      ? stateOrBool
+      : "available";
+
+  // Produkt jest traktowany jako aktywny do zakupu, gdy jest dostępny lub na zamówienie
+  const isAvailable = availability !== "unavailable";
+
+  // 1. Zapis zgodny ze ścisłym schematem Drizzle
+  const result = await db
+    .update(products)
+    .set({ isAvailable })
+    .where(eq(products.id, id))
+    .returning();
+
+  // 2. Zapis dokładnego 3-stopniowego statusu w kolumnie tekstowej (tworzonej w locie, jeśli nie istnieje)
+  try {
+    await db.execute(
+      sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS availability TEXT DEFAULT 'available'`
+    );
+    await db.execute(
+      sql`UPDATE products SET availability = ${availability} WHERE id = ${id}`
+    );
+  } catch (e) {
+    console.error("Błąd zapisu kolumny availability:", e);
+  }
+
   if (result.length > 0) {
     const brandId = result[0].brandId;
-    try { await db.execute(sql`UPDATE brands SET content_version = COALESCE(content_version, 0) + 1 WHERE id = ${brandId}`); } catch(e) {}
+    try {
+      await db.execute(
+        sql`UPDATE brands SET content_version = COALESCE(content_version, 0) + 1 WHERE id = ${brandId}`
+      );
+    } catch (e) {}
     revalidatePath("/panel/katalog");
     revalidatePath(`/panel/katalog/${brandId}`);
     return true;
@@ -22,22 +56,31 @@ type ProductInput = {
   id?: string;
   brandId: string;
   name: string;
-  sku: string; // przychodzi z UI jako sku
+  sku: string;
   ean: string;
   retailPriceNet: number;
   vatRate: number;
   isNetNet: boolean;
   isAvailable: boolean;
+  availability?: string;
   description?: string;
-  images?: unknown[]; // jsonb fallback
-  files?: unknown[]; // jsonb fallback
+  images?: unknown[];
+  files?: unknown[];
 };
 
 export async function saveProduct(data: ProductInput) {
   const isNew = !data.id || data.id === "new";
   let productId = data.id!;
 
-  // STRICT TYPING: Mapowanie interfejsu UI pod fizyczny schemat bazy
+  const availability: AvailabilityState =
+    data.availability === "on_demand" || data.availability === "unavailable"
+      ? data.availability
+      : data.isAvailable === false
+      ? "unavailable"
+      : "available";
+
+  const isAvailable = availability !== "unavailable";
+
   const payload = {
     brandId: data.brandId,
     name: data.name,
@@ -46,7 +89,7 @@ export async function saveProduct(data: ProductInput) {
     retailPriceNet: Math.round(data.retailPriceNet * 100),
     vatRate: data.vatRate,
     netNetPrice: data.isNetNet ? Math.round(data.retailPriceNet * 100) : null,
-    isAvailable: data.isAvailable,
+    isAvailable,
     description: data.description || "",
   };
 
@@ -57,20 +100,25 @@ export async function saveProduct(data: ProductInput) {
     await db.update(products).set(payload).where(eq(products.id, productId));
   }
 
-  // Raw SQL execution omija walidację TS dla kolumn których jeszcze nie zadeklarowaliśmy w schema.ts
   try {
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS files JSONB DEFAULT '[]'::jsonb`);
+    await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS availability TEXT DEFAULT 'available'`);
     
     await db.execute(sql`
       UPDATE products 
       SET images = ${JSON.stringify(data.images || [])}::jsonb,
-          files = ${JSON.stringify(data.files || [])}::jsonb
+          files = ${JSON.stringify(data.files || [])}::jsonb,
+          availability = ${availability}
       WHERE id = ${productId}
     `);
-  } catch(e) {}
+  } catch (e) {}
 
-  try { await db.execute(sql`UPDATE brands SET content_version = COALESCE(content_version, 0) + 1 WHERE id = ${data.brandId}`); } catch(e) {}
+  try {
+    await db.execute(
+      sql`UPDATE brands SET content_version = COALESCE(content_version, 0) + 1 WHERE id = ${data.brandId}`
+    );
+  } catch (e) {}
 
   revalidatePath(`/panel/katalog/${data.brandId}`);
   revalidatePath(`/panel/katalog/${data.brandId}/${productId}`);
@@ -90,7 +138,6 @@ export async function duplicateProduct(id: string) {
   let newSymbol = p.symbol + "-COPY";
   if (match) newSymbol = match[1] + (parseInt(match[2]) + 1);
 
-  // STRICT TYPING: wstawiamy dokładnie to co dyktuje schema
   await db.insert(products).values({
     brandId: p.brandId,
     name: p.name + " (Kopia)",

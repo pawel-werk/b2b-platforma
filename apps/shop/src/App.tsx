@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useSearchParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { resolveShop, getShopData, getVersion, createOrder } from "./api/client";
 import { useCart } from "./store/cart";
