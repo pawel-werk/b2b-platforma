@@ -1,4 +1,3 @@
 {
-  "/api/public/v1/shops/resolve/route": "app/api/public/v1/shops/resolve/route.js",
-  "/api/public/v1/shops/[slug]/catalog/route": "app/api/public/v1/shops/[slug]/catalog/route.js"
+  "/api/public/v1/shops/resolve/route": "app/api/public/v1/shops/resolve/route.js"
 }
