@@ -6,6 +6,11 @@ import * as schema from './schema';
 import { sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
+if (process.env.ALLOW_SEED !== "true") {
+  console.error("❌ ZABEZPIECZENIE: Uruchomienie seedu wymaga jawnego ustawienia zmiennej ALLOW_SEED=true.");
+  process.exit(1);
+}
+
 neonConfig.webSocketConstructor = ws;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
 const db = drizzle(pool, { schema });

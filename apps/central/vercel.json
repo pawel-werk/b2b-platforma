@@ -1,8 +1,5 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/monits",
-      "schedule": "0 8 * * *" 
-    }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd ../.. && pnpm --filter @repo/shared exec tsc --noEmit && pnpm --filter ./apps/central run build",
+  "installCommand": "pnpm install --no-frozen-lockfile"
 }

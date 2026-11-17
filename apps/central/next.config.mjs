@@ -2,13 +2,21 @@
 const nextConfig = {
   output: "standalone",
   async headers() {
-    return [{
-      source: "/api/public/:path*",
-      headers: [
-        { key: "Access-Control-Allow-Origin", value: "*" },
-        { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,POST" },
-      ],
-    }];
+    if (process.env.ROBOTS_NOINDEX === "false") {
+      return [];
+    }
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+    ];
   },
 };
+
 export default nextConfig;
