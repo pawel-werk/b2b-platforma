@@ -6,12 +6,10 @@ import { Users, UserPlus, Package, ShoppingCart, Inbox, Store } from "lucide-rea
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
-  // Twarda blokada - klienci B2B lecą do swojego katalogu
   if (session?.user?.role === "company") {
     redirect("/b2b/katalog");
   }
 
-  // Definiujemy menu bezpośrednio tutaj, omijając zewnętrzne komponenty
   const navItems = [
     { href: "/panel/klienci-oczekujacy", label: "Klienci oczekujący", icon: <UserPlus size={20}/> },
     { href: "/panel/b2b", label: "Klienci B2B", icon: <Users size={20}/> },
@@ -23,7 +21,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen bg-gray-100 w-full">
-      {/* TWARDY PASEK BOCZNY - ZAWSZE WIDOCZNY */}
       <aside className="w-[260px] bg-white border-r border-gray-300 flex flex-col h-screen sticky top-0 z-30 shrink-0">
         <div className="p-6 font-bold text-xl border-b border-gray-200">
           ITALGROUP Admin
@@ -41,7 +38,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      {/* GŁÓWNA ZAWARTOŚĆ I GÓRNY NAGŁÓWEK */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-20 bg-white border-b border-gray-300 px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm">
           <h1 className="font-bold text-lg text-gray-800">Panel Administratora</h1>
@@ -51,7 +47,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               {session?.user?.email}
             </span>
             
-            {/* W 100% DZIAŁAJĄCE WYLOGOWANIE (Server Action) */}
             <form action={async () => {
               "use server";
               await signOut({ redirectTo: "/panel/logowanie" });
