@@ -20,7 +20,7 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
   const pathname = usePathname();
 
   useEffect(() => {
-    const fetchCounters = () => getAdminCounters().then(setCounters);
+    const fetchCounters = () => getAdminCounters().then(setCounters).catch(() => {});
     window.addEventListener("focus", fetchCounters);
     return () => window.removeEventListener("focus", fetchCounters);
   }, []);
@@ -44,11 +44,11 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
     };
   }, [isOpen]);
 
-if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
-    return <div className="min-h-screen bg-brand-surface">{children}</div>;
+  // Jeśli to strona logowania w panelu, nie renderujemy paska bocznego
+  if (pathname?.includes("/logowanie")) {
+    return <div className="min-h-screen bg-gray-50">{children}</div>;
   }
 
-  // ZGODNE Z TWOIM TERMINALEM: b2b oraz katalog
   const mainNav = [
     { href: "/panel/klienci-oczekujacy", label: "Klienci oczekujący", icon: <UserPlus size={20}/>, badge: counters.pendingClients },
     { href: "/panel/b2b", label: "Klienci B2B", icon: <Users size={20}/> },
@@ -61,7 +61,7 @@ if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
     { href: "/panel/marki", label: "Marki i sklepy", icon: <Store size={20}/> },
   ];
 
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname ? pathname.split('/').filter(Boolean) : [];
   let breadcrumb = "Panel Administracyjny";
   if (segments.includes("katalog")) breadcrumb = "Katalog produktów";
   if (segments.includes("b2b")) breadcrumb = "Klienci B2B";
@@ -70,14 +70,14 @@ if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
   if (segments.includes("klienci-oczekujacy")) breadcrumb = "Klienci oczekujący";
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-brand-bg w-[260px] border-r border-brand-border p-6 shadow-sm">
-      <div className="mb-10">
+    <div className="flex flex-col h-full bg-white w-[260px] border-r border-gray-200 p-6 shadow-sm z-30">
+      <div className="mb-10 flex items-center">
         <img src="/logo-IT.png" alt="Italgroup Logo" className="h-10 object-contain" />
       </div>
       <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6">
         <NavList items={mainNav} onItemClick={() => setIsOpen(false)} />
         <div>
-          <div className="h-px bg-brand-border mb-4 w-full"></div>
+          <div className="h-px bg-gray-200 mb-4 w-full"></div>
           <NavList items={secondaryNav} onItemClick={() => setIsOpen(false)} />
         </div>
       </div>
@@ -85,17 +85,19 @@ if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
   );
 
   return (
-    <div className="flex min-h-screen bg-brand-surface w-full">
-      <aside className="hidden lg:block shrink-0">
+    <div className="flex min-h-screen bg-gray-100 w-full">
+      {/* Pasek boczny dla wersji desktopowej */}
+      <aside className="hidden lg:block shrink-0 sticky top-0 h-screen overflow-y-auto">
         <SidebarContent />
       </aside>
 
+      {/* Panel boczny wysuwany dla urządzeń mobilnych */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="fixed inset-0 bg-brand-text/20 backdrop-blur-sm" aria-hidden="true" />
-          <div ref={drawerRef} role="dialog" aria-modal="true" className="relative h-full flex transform transition-transform">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" onClick={() => setIsOpen(false)} />
+          <div ref={drawerRef} role="dialog" aria-modal="true" className="relative h-full flex transform transition-transform z-50 bg-white">
              <SidebarContent />
-             <button onClick={() => setIsOpen(false)} className="absolute top-6 right-[-48px] bg-brand-bg p-2 rounded-r-pill shadow-md outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
+             <button onClick={() => setIsOpen(false)} className="absolute top-6 right-[-48px] bg-white p-2 rounded-r-full shadow-md outline-none">
                <X size={24} />
              </button>
           </div>
@@ -103,24 +105,24 @@ if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-brand-bg border-b border-brand-border px-6 flex items-center justify-between shrink-0 sticky top-0 z-40">
+        <header className="h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between shrink-0 sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsOpen(true)} className="lg:hidden p-2 -ml-2 text-brand-text hover:bg-brand-surface rounded-pill outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
+            <button onClick={() => setIsOpen(true)} className="lg:hidden p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full outline-none">
               <Menu size={24} />
             </button>
-            <h1 className="font-semibold text-lg text-brand-text hidden sm:block">{breadcrumb}</h1>
+            <h1 className="font-semibold text-lg text-gray-800 hidden sm:block">{breadcrumb}</h1>
           </div>
           
           <div className="flex items-center gap-6">
             <div className="group relative">
-              <button className="flex items-center gap-2 px-4 py-2 bg-brand-surface rounded-pill text-sm font-semibold hover:bg-brand-accent transition outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
-                Podgląd sklepu <ChevronDown size={16} className="text-brand-textsec group-hover:rotate-180 transition-transform" />
+              <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-semibold hover:bg-gray-200 transition outline-none">
+                Podgląd sklepu <ChevronDown size={16} className="text-gray-500 group-hover:rotate-180 transition-transform" />
               </button>
-              <div className="absolute right-0 top-full mt-2 w-48 bg-brand-bg border border-brand-border rounded-card shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-2xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
                 {brands.map(b => {
                    const url = b.domain ? `https://${b.domain}` : (process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL ? `${process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL}?shop=${b.slug}` : `http://localhost:3001?shop=${b.slug}`);
                    return (
-                     <a key={b.slug} href={url} target="_blank" rel="noopener noreferrer" className="block px-4 py-3 text-sm hover:bg-brand-surface font-semibold text-brand-text">
+                     <a key={b.slug} href={url} target="_blank" rel="noopener noreferrer" className="block px-4 py-3 text-sm hover:bg-gray-50 font-semibold text-gray-700">
                        {b.name}
                      </a>
                    );
@@ -128,10 +130,10 @@ if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
               </div>
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 border-l border-brand-border pl-6">
-              <span className="text-sm font-semibold text-brand-textsec">{userEmail}</span>
+            <div className="hidden sm:flex items-center gap-4 border-l border-gray-200 pl-6">
+              <span className="text-sm font-semibold text-gray-600">{userEmail}</span>
               <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="text-brand-text hover:text-red-600 transition outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-pill p-1" title="Wyloguj">
+                <button type="submit" className="text-gray-600 hover:text-red-600 transition p-1 rounded-full" title="Wyloguj">
                   <LogOut size={20} />
                 </button>
               </form>
