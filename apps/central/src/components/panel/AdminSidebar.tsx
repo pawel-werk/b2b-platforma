@@ -44,7 +44,6 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
     };
   }, [isOpen]);
 
-  // Jeśli to strona logowania w panelu, nie renderujemy paska bocznego
   if (pathname?.includes("/logowanie")) {
     return <div className="min-h-screen bg-gray-50">{children}</div>;
   }
@@ -70,9 +69,9 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
   if (segments.includes("klienci-oczekujacy")) breadcrumb = "Klienci oczekujący";
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white w-[260px] border-r border-gray-200 p-6 shadow-sm z-30">
+    <div className="flex flex-col h-full bg-white w-[260px] border-r border-gray-300 p-6 shadow-md z-30">
       <div className="mb-10 flex items-center">
-        <img src="/logo-IT.png" alt="Italgroup Logo" className="h-10 object-contain" />
+        <span className="font-bold text-xl text-gray-800">ITALGROUP Admin</span>
       </div>
       <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6">
         <NavList items={mainNav} onItemClick={() => setIsOpen(false)} />
@@ -86,60 +85,31 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
 
   return (
     <div className="flex min-h-screen bg-gray-100 w-full">
-      {/* Pasek boczny dla wersji desktopowej */}
-      <aside className="hidden lg:block shrink-0 sticky top-0 h-screen overflow-y-auto">
+      {/* Zawsze widoczny pasek boczny (usunięto 'hidden lg:block') */}
+      <aside className="shrink-0 sticky top-0 h-screen overflow-y-auto bg-white border-r border-gray-300">
         <SidebarContent />
       </aside>
 
-      {/* Panel boczny wysuwany dla urządzeń mobilnych */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" onClick={() => setIsOpen(false)} />
-          <div ref={drawerRef} role="dialog" aria-modal="true" className="relative h-full flex transform transition-transform z-50 bg-white">
-             <SidebarContent />
-             <button onClick={() => setIsOpen(false)} className="absolute top-6 right-[-48px] bg-white p-2 rounded-r-full shadow-md outline-none">
-               <X size={24} />
-             </button>
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between shrink-0 sticky top-0 z-40 shadow-xs">
+        {/* Wyraźny, górny nagłówek */}
+        <header className="h-20 bg-white border-b-2 border-green-600 px-6 flex items-center justify-between shrink-0 sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsOpen(true)} className="lg:hidden p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full outline-none">
-              <Menu size={24} />
-            </button>
-            <h1 className="font-semibold text-lg text-gray-800 hidden sm:block">{breadcrumb}</h1>
+            <h1 className="font-bold text-xl text-gray-900">{breadcrumb}</h1>
           </div>
           
           <div className="flex items-center gap-6">
-            <div className="group relative">
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-semibold hover:bg-gray-200 transition outline-none">
-                Podgląd sklepu <ChevronDown size={16} className="text-gray-500 group-hover:rotate-180 transition-transform" />
+            <div className="text-sm font-semibold text-gray-700">
+              {userEmail}
+            </div>
+            <form action="/api/auth/signout" method="POST">
+              <button type="submit" className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-red-100 transition" title="Wyloguj">
+                Wyloguj
               </button>
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-2xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                {brands.map(b => {
-                   const url = b.domain ? `https://${b.domain}` : (process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL ? `${process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL}?shop=${b.slug}` : `http://localhost:3001?shop=${b.slug}`);
-                   return (
-                     <a key={b.slug} href={url} target="_blank" rel="noopener noreferrer" className="block px-4 py-3 text-sm hover:bg-gray-50 font-semibold text-gray-700">
-                       {b.name}
-                     </a>
-                   );
-                })}
-              </div>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-4 border-l border-gray-200 pl-6">
-              <span className="text-sm font-semibold text-gray-600">{userEmail}</span>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="text-gray-600 hover:text-red-600 transition p-1 rounded-full" title="Wyloguj">
-                  <LogOut size={20} />
-                </button>
-              </form>
-            </div>
+            </form>
           </div>
         </header>
+
+        {/* Główna treść */}
         <main id="main-content" className="flex-1 p-6 md:p-8">
           {children}
         </main>
