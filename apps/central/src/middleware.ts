@@ -5,7 +5,17 @@ import type { NextRequest } from "next/server";
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET || "dev-secret-fallback", salt: "authjs.session-token" });
+  // Rozpoznawanie środowiska (Vercel z HTTPS czy localhost z HTTP)
+  const isSecure = req.nextUrl.protocol === "https:";
+  const cookieName = isSecure ? "__Secure-authjs.session-token" : "authjs.session-token";
+
+  const token = await getToken({ 
+    req, 
+    secret: process.env.AUTH_SECRET || "dev-secret-fallback",
+    secureCookie: isSecure,
+    salt: cookieName 
+  });
+  
   const isLoggedIn = !!token;
 
   const role = token?.role as string | undefined;
