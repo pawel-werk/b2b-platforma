@@ -4,7 +4,7 @@ import { Menu, X, Users, UserPlus, Package, ShoppingCart, Inbox, Store, LogOut, 
 import { NavList } from "@/components/nav/NavList";
 import { getAdminCounters } from "@/actions/counters";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 interface AdminSidebarProps {
   initialCounters: { pendingClients: number; newOrders: number; unreadMessages: number };
@@ -16,6 +16,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ initialCounters, brands, userEmail, children }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [counters, setCounters] = useState(initialCounters);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -24,8 +25,28 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
     return () => window.removeEventListener("focus", fetchCounters);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && isOpen) setIsOpen(false); };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isOpen && drawerRef.current && !drawerRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Ten warunek gwarantuje czysty ekran logowania (brak menu i nawigacji)
   if (pathname?.includes("/logowanie")) {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+    return <div className="min-h-screen bg-brand-surface">{children}</div>;
   }
 
   const mainNav = [
@@ -48,31 +69,80 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
   if (segments.includes("marki")) breadcrumb = "Marki i sklepy";
   if (segments.includes("klienci-oczekujacy")) breadcrumb = "Klienci oczekujący";
 
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-brand-bg w-[260px] border-r border-brand-border p-6 shadow-sm">
+      <div className="mb-10">
+        <img src="/logo-IT.png" alt="Italgroup Logo" className="h-10 object-contain" />
+      </div>
+      <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6">
+        <NavList items={mainNav} onItemClick={() => setIsOpen(false)} />
+        <div>
+          <div className="h-px bg-brand-border mb-4 w-full"></div>
+          <NavList items={secondaryNav} onItemClick={() => setIsOpen(false)} />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex min-h-screen bg-red-100 w-full">
-      {/* TESTOWY PANEL BOCZNY - JASKRAWY ŻÓŁTY */}
-      <aside className="shrink-0 w-[280px] bg-yellow-300 border-r-4 border-red-600 p-6 min-h-screen">
-        <div className="mb-6 bg-red-600 text-white p-3 font-bold text-center">
-          TUTAJ JEST MENU ADMINA!
-        </div>
-        <div className="flex flex-col gap-2">
-          {mainNav.map((item) => (
-            <a key={item.href} href={item.href} className="block p-3 bg-white rounded font-bold text-black hover:bg-gray-100">
-              {item.label}
-            </a>
-          ))}
-        </div>
+    <div className="flex min-h-screen bg-brand-surface w-full">
+      <aside className="hidden lg:block shrink-0 sticky top-0 h-screen overflow-y-auto">
+        <SidebarContent />
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* TESTOWY NAGŁÓWEK */}
-        <header className="h-20 bg-blue-600 text-white px-6 flex items-center justify-between shrink-0">
-          <h1 className="font-bold text-xl">{breadcrumb}</h1>
-          <div>{userEmail}</div>
-        </header>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="fixed inset-0 bg-brand-text/20 backdrop-blur-sm" aria-hidden="true" onClick={() => setIsOpen(false)} />
+          <div ref={drawerRef} role="dialog" aria-modal="true" className="relative h-full flex transform transition-transform z-50 bg-brand-bg">
+             <SidebarContent />
+             <button onClick={() => setIsOpen(false)} className="absolute top-6 right-[-48px] bg-brand-bg p-2 rounded-r-pill shadow-md outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
+               <X size={24} />
+             </button>
+          </div>
+        </div>
+      )}
 
-        {/* Główna treść */}
-        <main className="flex-1 p-6">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-20 bg-brand-bg border-b border-brand-border px-6 flex items-center justify-between shrink-0 sticky top-0 z-40">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsOpen(true)} className="lg:hidden p-2 -ml-2 text-brand-text hover:bg-brand-surface rounded-pill outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
+              <Menu size={24} />
+            </button>
+            <h1 className="font-semibold text-lg text-brand-text hidden sm:block">{breadcrumb}</h1>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="group relative">
+              <button className="flex items-center gap-2 px-4 py-2 bg-brand-surface rounded-pill text-sm font-semibold hover:bg-brand-accent transition outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">
+                Podgląd sklepu <ChevronDown size={16} className="text-brand-textsec group-hover:rotate-180 transition-transform" />
+              </button>
+              <div className="absolute right-0 top-full mt-2 w-48 bg-brand-bg border border-brand-border rounded-card shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                {brands.map(b => {
+                   const url = b.domain ? `https://${b.domain}` : (process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL ? `${process.env.NEXT_PUBLIC_SHOP_PREVIEW_BASE_URL}?shop=${b.slug}` : `http://localhost:3001?shop=${b.slug}`);
+                   return (
+                     <a key={b.slug} href={url} target="_blank" rel="noopener noreferrer" className="block px-4 py-3 text-sm hover:bg-brand-surface font-semibold text-brand-text">
+                       {b.name}
+                     </a>
+                   );
+                })}
+              </div>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-4 border-l border-brand-border pl-6">
+              <span className="text-sm font-semibold text-brand-textsec">{userEmail}</span>
+              
+              {/* Estetyczny, działający przycisk wylogowania */}
+              <button 
+                onClick={() => signOut({ callbackUrl: "/panel/logowanie" })} 
+                className="text-brand-text hover:text-red-600 transition outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-pill p-1" 
+                title="Wyloguj"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
+          </div>
+        </header>
+        <main id="main-content" className="flex-1 p-6 md:p-8">
           {children}
         </main>
       </div>
