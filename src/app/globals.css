@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #4F7A5E;
+  --brand-soft: #E6EFE8;
+  --brand-surface: #F4F6F4;
+  --brand-ink: #2A322D;
+  --brand-muted: #8B938D;
+  --brand-border: #E3E7E3;
+  --brand-bg: #FFFFFF;
+}

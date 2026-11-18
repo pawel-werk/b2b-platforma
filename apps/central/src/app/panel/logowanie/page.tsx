@@ -2,6 +2,7 @@ import { signIn } from "@/auth";
 import { Logo } from "@/components/Logo";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link"; // Dodany niezbędny import
 
 export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
@@ -9,7 +10,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
       <div className="bg-brand-bg p-10 rounded-card shadow-sm border border-brand-border max-w-md w-full flex flex-col items-center">
         <Logo className="mb-8" />
         <div className="w-full text-center mb-8">
-          <h1 className="text-2xl font-bold">Panel Administratora</h1>
+          <h1 className="text-2xl font-bold">Platforma B2B</h1>
         </div>
         
         {searchParams?.error && (
@@ -24,30 +25,39 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
             await signIn("credentials", { 
               email: formData.get("email"), 
               password: formData.get("password"),
-              redirectTo: "/panel/klienci-oczekujacy" 
+              redirectTo: "/b2b/katalog" // Przekierowanie do katalogu po zalogowaniu
             });
           } catch (error) {
             if (error instanceof AuthError) {
-              redirect("/panel/logowanie?error=1");
+              redirect("/b2b/logowanie?error=1");
             }
-            throw error; // Konieczne, by zadziałało przekierowanie Next.js po udanym logowaniu!
+            throw error;
           }
         }} className="flex flex-col gap-5 w-full">
           
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-brand-ink ml-2">Adres e-mail</label>
-            <input type="email" name="email" required defaultValue="admin@italgroup.pl" className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
+            <input type="email" name="email" required className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
           </div>
           
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-brand-ink ml-2">Hasło</label>
-            <input type="password" name="password" required defaultValue="12345678" className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
+            <input type="password" name="password" required className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
           </div>
 
           <button type="submit" className="bg-brand-primary text-white font-bold p-4 rounded-pill hover:bg-[#3E634C] transition mt-4 w-full">
             Zaloguj się
           </button>
         </form>
+
+        {/* Link wrzucony w odpowiednie miejsce wewnątrz kontenera */}
+        <div className="mt-4 text-center text-sm text-gray-600">
+          Nie jesteś naszym klientem?{" "}
+          <Link href="/b2b/rejestracja" className="font-semibold text-blue-600 hover:text-blue-500 hover:underline">
+            Zarejestruj się
+          </Link>
+        </div>
+
       </div>
     </div>
   );
