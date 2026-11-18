@@ -44,7 +44,7 @@ export function AdminSidebar({ initialCounters, brands, userEmail, children }: A
     };
   }, [isOpen]);
 
-  if (pathname.includes("/logowanie")) {
+if (pathname === "/panel/logowanie" || pathname === "/panel/logowanie/") {
     return <div className="min-h-screen bg-brand-surface">{children}</div>;
   }
 
