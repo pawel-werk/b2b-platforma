@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu, X, User, ShoppingBag, FolderTree, FileText, LogOut } from "lucide-react";
 import { NavList } from "@/components/nav/NavList";
 import { useB2BCart } from "@/store/b2b-cart";
+import { signOut } from "next-auth/react";
 
 export function B2BHeader({ companyId, companyName }: { companyId: string, companyName: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,17 +54,20 @@ export function B2BHeader({ companyId, companyName }: { companyId: string, compa
         </div>
 
         <nav className="hidden lg:flex items-center gap-1">
-          {/* TO NAPRAWIA PROBLEM: direction="row" układa przyciski obok siebie */}
           <NavList items={navItems} direction="row" />
         </nav>
 
         <div className="hidden lg:flex items-center gap-4 border-l border-brand-border pl-6 ml-6">
           <span className="font-semibold text-sm text-brand-text truncate max-w-[200px]">{companyName}</span>
-          <form action="/api/auth/signout" method="POST">
-             <button type="submit" className="text-brand-textsec hover:text-red-600 p-2 rounded-pill focus-visible:ring-2 focus-visible:ring-red-500 outline-none transition" aria-label="Wyloguj" title="Wyloguj">
-               <LogOut size={20} />
-             </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/b2b/logowanie" })}
+            className="text-brand-textsec hover:text-red-600 p-2 rounded-pill focus-visible:ring-2 focus-visible:ring-red-500 outline-none transition"
+            aria-label="Wyloguj"
+            title="Wyloguj"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </div>
 
@@ -82,11 +86,13 @@ export function B2BHeader({ companyId, companyName }: { companyId: string, compa
             </div>
             <div className="pt-6 border-t border-brand-border">
               <p className="font-semibold text-sm text-brand-text mb-4 truncate">{companyName}</p>
-              <form action="/api/auth/signout" method="POST">
-                 <button type="submit" className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-pill font-semibold text-sm transition outline-none focus-visible:ring-2 focus-visible:ring-red-500">
-                   <LogOut size={20} /> Wyloguj
-                 </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/b2b/logowanie" })}
+                className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-pill font-semibold text-sm transition outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                <LogOut size={20} /> Wyloguj
+              </button>
             </div>
           </div>
         </div>

@@ -1,59 +1,60 @@
-"use client";
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { signIn } from "@/auth";
+import { Logo } from "@/components/Logo";
+import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    const result = await signIn("credentials", {
-      email, password, redirect: false
-    });
-
-    if (result?.error) {
-      toast.error("Nieprawidłowy e-mail lub hasło.");
-      setLoading(false);
-    } else {
-      router.push("/b2b");
-      router.refresh();
-    }
-  };
-
+export default function B2bLoginPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-bg p-6">
-      <div className="w-full max-w-md bg-white p-8 rounded-card border border-brand-border shadow-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-brand-ink mb-2">Panel B2B Italgroup</h1>
-          <p className="text-brand-muted text-sm">Zaloguj się na konto swojej firmy</p>
+    <div className="min-h-screen flex items-center justify-center bg-brand-surface p-6">
+      <div className="bg-brand-bg p-10 rounded-card shadow-sm border border-brand-border max-w-md w-full flex flex-col items-center">
+        <Logo className="mb-8" />
+        <div className="w-full text-center mb-8">
+          <h1 className="text-2xl font-bold">Platforma B2B</h1>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold mb-2">E-mail</label>
-            <input required type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full border border-brand-border p-3 rounded-lg outline-none focus:border-brand-primary" />
+        {searchParams?.error && (
+          <div className="w-full p-3 mb-5 bg-red-50 text-red-600 text-sm rounded-lg text-center font-bold">
+            Błędny e-mail lub hasło.
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Hasło</label>
-            <input required type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full border border-brand-border p-3 rounded-lg outline-none focus:border-brand-primary" />
+        )}
+
+        <form action={async (formData) => {
+          "use server";
+          try {
+            await signIn("credentials", { 
+              email: formData.get("email"), 
+              password: formData.get("password"),
+              redirectTo: "/b2b/katalog" 
+            });
+          } catch (error) {
+            if (error instanceof AuthError) {
+              redirect("/b2b/logowanie?error=1");
+            }
+            throw error;
+          }
+        }} className="flex flex-col gap-5 w-full">
+          
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-bold text-brand-ink ml-2">Adres e-mail</label>
+            <input type="email" name="email" required className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
           </div>
           
-          <button disabled={loading} type="submit" className="w-full bg-brand-ink text-white font-bold py-3 rounded-pill hover:bg-opacity-90 transition mt-4">
-            {loading ? "Logowanie..." : "Zaloguj się"}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-bold text-brand-ink ml-2">Hasło</label>
+            <input type="password" name="password" required className="border border-brand-border bg-brand-surface p-3.5 rounded-pill text-brand-ink focus:bg-brand-bg transition" />
+          </div>
+
+          <button type="submit" className="bg-brand-primary text-white font-bold p-4 rounded-pill hover:bg-[#3E634C] transition mt-4 w-full">
+            Zaloguj się
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-brand-border text-center">
-          <p className="text-sm text-brand-muted mb-2">Nie masz jeszcze konta B2B?</p>
-          <Link href="/b2b/rejestracja" className="text-brand-primary font-bold hover:underline">Złóż wniosek o współpracę</Link>
+        <div className="mt-4 text-center text-sm text-gray-600">
+          Nie jesteś naszym klientem?{" "}
+          <Link href="/b2b/rejestracja" className="font-semibold text-blue-600 hover:text-blue-500 hover:underline">
+            Zarejestruj się
+          </Link>
         </div>
       </div>
     </div>
