@@ -1,18 +1,14 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  // ...Twoja dotychczasowa konfiguracja (np. images itp.)
+
   async headers() {
-    if (process.env.ROBOTS_NOINDEX === "false") {
-      return [];
-    }
     return [
       {
-        source: "/:path*",
+        source: "/api/public/:path*",
         headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex, nofollow, noarchive",
-          },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
         ],
       },
     ];
