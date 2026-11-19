@@ -12,7 +12,6 @@ const SESSION_SLUG_KEY = "b2c_active_shop_slug";
 export function getCentralBaseUrl(): string {
   const envUrl = import.meta.env.VITE_CENTRAL_URL;
   if (envUrl) return String(envUrl).replace(/\/$/, "");
-  // W dev używamy pustego prefiksu (idzie przez proxy Vite) lub http://localhost:3000
   return "";
 }
 
@@ -58,24 +57,23 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getCentralBaseUrl();
   const url = `${base}${path}`;
 
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  if (init?.body && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   let res: Response;
   try {
-    res = await fetch(url, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers || {}),
-      },
-    });
-  } catch {
-    // Fallback bezpośrednio na http://localhost:3000 jeśli proxy nie zadziałało
-    res = await fetch(`http://localhost:3000${path}`, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers || {}),
-      },
-    });
+    res = await fetch(url, { ...init, headers });
+  } catch (err) {
+    const isLocal =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    if (!isLocal) throw err;
+
+    res = await fetch(`http://localhost:3000${path}`, { ...init, headers });
   }
 
   if (!res.ok) {
