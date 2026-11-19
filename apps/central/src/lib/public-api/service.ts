@@ -106,7 +106,30 @@ export async function getBrandVersionOnly(slug: string): Promise<number | null> 
   return Number(rows[0].content_version ?? 1);
 }
 
-function makeSinkSvg(mainHex: string, rimHex: string, label: string, view: "iso" | "top"): string {
+type ProductKind =
+  | "oven"
+  | "hob"
+  | "hood"
+  | "fridge"
+  | "dishwasher"
+  | "faucet"
+  | "coffee"
+  | "microwave"
+  | "sink";
+
+function detectProductKind(name: string): ProductKind {
+  if (/bateria|kran|armatura|umbrella|wylew/i.test(name)) return "faucet";
+  if (/piekarnik|oven|kuchnia wolnostoj/i.test(name)) return "oven";
+  if (/płyta|plyta|indukc|gazow|hob/i.test(name)) return "hob";
+  if (/okap|pochłaniacz|pochlaniacz|hood/i.test(name)) return "hood";
+  if (/lodówk|lodowk|chłodziark|chlodziark|winiark|zamrażark|zamrazark|fridge|wine/i.test(name)) return "fridge";
+  if (/zmywark|dishwasher/i.test(name)) return "dishwasher";
+  if (/ekspres|kaw|coffee/i.test(name)) return "coffee";
+  if (/mikrofal|microwave/i.test(name)) return "microwave";
+  return "sink";
+}
+
+function makeSinkSvg(mainHex: string, rimHex: string, label: string, view: "iso" | "detail"): string {
   const svg = view === "iso"
     ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
         <rect width="600" height="750" fill="#EEF2F7"/>
@@ -153,6 +176,194 @@ function makeFaucetSvg(mainHex: string, accentHex: string, label: string, view: 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+function makeOvenSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="560" rx="195" ry="22" fill="#0B2545" opacity="0.08"/>
+        <rect x="115" y="155" width="370" height="385" rx="22" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="135" y="175" width="330" height="68" rx="10" fill="${accentHex}" opacity="0.22"/>
+        <circle cx="190" cy="209" r="14" fill="#475569" stroke="${accentHex}" stroke-width="3"/>
+        <rect x="245" y="193" width="110" height="32" rx="8" fill="#1E293B"/>
+        <circle cx="410" cy="209" r="14" fill="#475569" stroke="${accentHex}" stroke-width="3"/>
+        <rect x="165" y="264" width="270" height="16" rx="8" fill="#64748B"/>
+        <rect x="155" y="298" width="290" height="205" rx="14" fill="#1E293B" stroke="${accentHex}" stroke-width="4"/>
+        <path d="M185 330 L255 330" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="8" stroke-linecap="round"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="105" y="210" width="390" height="190" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <circle cx="185" cy="305" r="30" fill="#475569" stroke="${accentHex}" stroke-width="5"/>
+        <rect x="245" y="275" width="110" height="60" rx="10" fill="#1E293B"/>
+        <circle cx="415" cy="305" r="30" fill="#475569" stroke="${accentHex}" stroke-width="5"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Panel sterowania</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeHobSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="525" rx="220" ry="22" fill="#0B2545" opacity="0.08"/>
+        <rect x="85" y="195" width="430" height="305" rx="24" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <circle cx="205" cy="295" r="56" fill="none" stroke="#475569" stroke-width="5" stroke-dasharray="10 8"/>
+        <circle cx="205" cy="295" r="22" fill="none" stroke="#475569" stroke-width="4"/>
+        <circle cx="395" cy="295" r="46" fill="none" stroke="#475569" stroke-width="5" stroke-dasharray="10 8"/>
+        <circle cx="205" cy="415" r="42" fill="none" stroke="#475569" stroke-width="5" stroke-dasharray="10 8"/>
+        <circle cx="395" cy="410" r="58" fill="none" stroke="#475569" stroke-width="5" stroke-dasharray="10 8"/>
+        <rect x="235" y="468" width="130" height="14" rx="7" fill="#64748B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="85" y="230" width="430" height="230" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <line x1="150" y1="345" x2="450" y2="345" stroke="#475569" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="220" cy="345" r="14" fill="#1E293B"/>
+        <circle cx="300" cy="345" r="14" fill="#1E293B"/>
+        <circle cx="380" cy="345" r="14" fill="#1E293B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Sterowanie</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeHoodSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="540" rx="205" ry="20" fill="#0B2545" opacity="0.08"/>
+        <rect x="235" y="140" width="130" height="210" rx="8" fill="${mainHex}" stroke="${accentHex}" stroke-width="7"/>
+        <path d="M95 465 L175 350 L425 350 L505 465 Z" fill="${mainHex}" stroke="${accentHex}" stroke-width="7" stroke-linejoin="round"/>
+        <rect x="95" y="465" width="410" height="44" rx="10" fill="${mainHex}" stroke="${accentHex}" stroke-width="7"/>
+        <circle cx="268" cy="487" r="7" fill="#475569"/>
+        <circle cx="300" cy="487" r="7" fill="#475569"/>
+        <circle cx="332" cy="487" r="7" fill="#475569"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="95" y="210" width="410" height="250" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="140" y="255" width="145" height="160" rx="10" fill="${accentHex}" opacity="0.35"/>
+        <rect x="315" y="255" width="145" height="160" rx="10" fill="${accentHex}" opacity="0.35"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Filtry</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeFridgeSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="570" rx="155" ry="20" fill="#0B2545" opacity="0.08"/>
+        <rect x="165" y="130" width="270" height="420" rx="22" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <line x1="165" y1="385" x2="435" y2="385" stroke="${accentHex}" stroke-width="7"/>
+        <rect x="195" y="215" width="14" height="115" rx="7" fill="#64748B"/>
+        <rect x="195" y="420" width="14" height="80" rx="7" fill="#64748B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="165" y="145" width="270" height="390" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <line x1="195" y1="230" x2="405" y2="230" stroke="#64748B" stroke-width="6"/>
+        <line x1="195" y1="315" x2="405" y2="315" stroke="#64748B" stroke-width="6"/>
+        <line x1="195" y1="400" x2="405" y2="400" stroke="#64748B" stroke-width="6"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Wnętrze</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeDishwasherSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="560" rx="190" ry="22" fill="#0B2545" opacity="0.08"/>
+        <rect x="120" y="155" width="360" height="385" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="138" y="175" width="324" height="58" rx="10" fill="${accentHex}" opacity="0.25"/>
+        <rect x="230" y="194" width="140" height="20" rx="10" fill="#64748B"/>
+        <line x1="120" y1="250" x2="480" y2="250" stroke="${accentHex}" stroke-width="6"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="115" y="235" width="370" height="160" rx="18" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="220" y="295" width="160" height="40" rx="12" fill="#475569"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Detal</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeCoffeeSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="540" rx="185" ry="20" fill="#0B2545" opacity="0.08"/>
+        <rect x="125" y="180" width="350" height="335" rx="22" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="160" y="215" width="280" height="62" rx="10" fill="#1E293B"/>
+        <rect x="195" y="310" width="210" height="165" rx="14" fill="${accentHex}" opacity="0.25"/>
+        <rect x="275" y="322" width="50" height="34" rx="6" fill="#475569"/>
+        <path d="M255 405 H345 L334 458 H266 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="6"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="140" y="215" width="320" height="220" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="180" y="260" width="240" height="80" rx="12" fill="#1E293B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Panel</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeMicrowaveSvg(mainHex: string, accentHex: string, label: string, view: "iso" | "detail"): string {
+  const svg = view === "iso"
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <ellipse cx="300" cy="520" rx="210" ry="20" fill="#0B2545" opacity="0.08"/>
+        <rect x="90" y="220" width="420" height="275" rx="22" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="122" y="252" width="265" height="210" rx="14" fill="#1E293B" stroke="${accentHex}" stroke-width="4"/>
+        <circle cx="445" cy="300" r="18" fill="#475569"/>
+        <circle cx="445" cy="360" r="18" fill="#475569"/>
+        <rect x="420" y="420" width="50" height="20" rx="10" fill="#64748B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label}</text>
+      </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" width="600" height="750">
+        <rect width="600" height="750" fill="#EEF2F7"/>
+        <rect x="115" y="235" width="370" height="220" rx="20" fill="${mainHex}" stroke="${accentHex}" stroke-width="8"/>
+        <rect x="155" y="275" width="290" height="140" rx="12" fill="#1E293B"/>
+        <text x="300" y="655" text-anchor="middle" fill="#14223B" font-family="sans-serif" font-size="21" font-weight="700">${label} – Detal</text>
+      </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function makeProductSvg(
+  kind: ProductKind,
+  mainHex: string,
+  accentHex: string,
+  label: string,
+  view: "iso" | "detail"
+): string {
+  switch (kind) {
+    case "faucet":
+      return makeFaucetSvg(mainHex, accentHex, label, view);
+    case "oven":
+      return makeOvenSvg(mainHex, accentHex, label, view);
+    case "hob":
+      return makeHobSvg(mainHex, accentHex, label, view);
+    case "hood":
+      return makeHoodSvg(mainHex, accentHex, label, view);
+    case "fridge":
+      return makeFridgeSvg(mainHex, accentHex, label, view);
+    case "dishwasher":
+      return makeDishwasherSvg(mainHex, accentHex, label, view);
+    case "coffee":
+      return makeCoffeeSvg(mainHex, accentHex, label, view);
+    case "microwave":
+      return makeMicrowaveSvg(mainHex, accentHex, label, view);
+    default:
+      return makeSinkSvg(mainHex, accentHex, label, view);
+  }
+}
+
 function mapProductRowToCatalogProduct(row: Record<string, unknown>): CatalogProduct {
   const productId = String(row.id);
   const symbol = String(row.symbol || productId);
@@ -161,7 +372,8 @@ function mapProductRowToCatalogProduct(row: Record<string, unknown>): CatalogPro
   const baseNettoGrosze = Number(row.retail_price_net ?? 149000);
   const baseAvailability = normalizeAvailability(row.availability, row.is_available);
   const name = String(row.name || "Produkt");
-  const isFaucet = /bateria|kran|armatura|umbrella|wylew/i.test(name);
+  const kind = detectProductKind(name);
+  const isFaucet = kind === "faucet";
 
   const mappedFiles = [
     {
@@ -256,12 +468,8 @@ function mapProductRowToCatalogProduct(row: Record<string, unknown>): CatalogPro
   const baseEan = String(row.ean || "4051202000").slice(0, 10);
 
   const variants: CatalogVariant[] = palettes.map((p, idx) => {
-    const img1 = isFaucet
-      ? makeFaucetSvg(p.swatchHex, p.rimHex, `${p.colorName} (${p.code})`, "iso")
-      : makeSinkSvg(p.swatchHex, p.rimHex, `${p.colorName} (${p.code})`, "iso");
-    const img2 = isFaucet
-      ? makeFaucetSvg(p.swatchHex, p.rimHex, p.colorName, "detail")
-      : makeSinkSvg(p.swatchHex, p.rimHex, p.colorName, "top");
+    const img1 = makeProductSvg(kind, p.swatchHex, p.rimHex, `${p.colorName} (${p.code})`, "iso");
+    const img2 = makeProductSvg(kind, p.swatchHex, p.rimHex, p.colorName, "detail");
 
     return {
       id: idx === 0 ? productId : `${productId}${p.suffix}`,
