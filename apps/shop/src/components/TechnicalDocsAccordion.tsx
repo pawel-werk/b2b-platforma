@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { resolveAssetUrl } from "../lib/api";
 
 interface DocFile {
@@ -21,6 +21,8 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 export function TechnicalDocsAccordion({ files }: { files: DocFile[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (!files || files.length === 0) return null;
 
   const groups = files.reduce<Record<string, DocFile[]>>((acc, file) => {
@@ -31,7 +33,6 @@ export function TechnicalDocsAccordion({ files }: { files: DocFile[] }) {
   }, {});
 
   const groupKeys = Object.keys(groups);
-  const [openKey, setOpenKey] = useState<string | null>(groupKeys[0] || null);
 
   const getBadgeLabel = (f: DocFile) => {
     if (f.mimeType.includes("pdf") || f.url.endsWith(".pdf")) return "PDF";
@@ -40,72 +41,63 @@ export function TechnicalDocsAccordion({ files }: { files: DocFile[] }) {
   };
 
   return (
-    <section aria-label="Dokumentacja techniczna" className="py-12 md:py-16 border-t border-shop-border">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-5 space-y-3">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-shop-text">
-            Dokumentacja techniczna
-          </h2>
-          <p className="text-sm md:text-base text-shop-muted">
-            Karty techniczne, instrukcje montażu i modele 3D dla architektów.
-          </p>
-        </div>
+    <div className="border-b border-shop-line">
+      <button
+        type="button"
+        onClick={() => setIsOpen((v) => !v)}
+        aria-expanded={isOpen}
+        className="w-full py-5 flex items-center justify-between gap-4 text-left text-sm font-normal text-shop-ink hover:text-shop-bronze transition-colors"
+      >
+        <span className="text-[12px] uppercase tracking-[0.16em]">
+          Dokumentacja techniczna
+        </span>
+        {isOpen ? (
+          <Minus className="w-4 h-4 text-shop-muted shrink-0" strokeWidth={1.25} />
+        ) : (
+          <Plus className="w-4 h-4 text-shop-muted shrink-0" strokeWidth={1.25} />
+        )}
+      </button>
 
-        <div className="lg:col-span-7 space-y-3">
+      {isOpen && (
+        <div className="pb-6 space-y-5">
           {groupKeys.map((key) => {
-            const isOpen = openKey === key;
             const label = KIND_LABELS[key] || key;
             const items = groups[key];
 
             return (
-              <div key={key} className="border border-shop-border rounded-card overflow-hidden bg-white">
-                <button
-                  type="button"
-                  onClick={() => setOpenKey(isOpen ? null : key)}
-                  aria-expanded={isOpen}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-sm md:text-base text-shop-text hover:bg-shop-surface/60 transition"
-                >
-                  <span>{label}</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-shop-muted transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {isOpen && (
-                  <div className="px-6 pb-4 pt-1 space-y-2.5 border-t border-shop-border">
-                    {items.map((f, idx) => (
-                      <div
-                        key={`${f.title}-${idx}`}
-                        className="flex items-center justify-between gap-4 py-2.5 px-4 rounded-lg border border-shop-border bg-shop-surface/40"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="px-2.5 py-1 rounded bg-shop-accent text-white text-[11px] font-bold uppercase tracking-wider shrink-0">
-                            {getBadgeLabel(f)}
-                          </span>
-                          <span className="font-semibold text-sm text-shop-text truncate">
-                            {f.title}
-                          </span>
-                        </div>
-                        <a
-                          href={resolveAssetUrl(f.url)}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-bold underline text-shop-text hover:text-shop-accent shrink-0"
-                        >
-                          Pobierz
-                        </a>
+              <div key={key} className="space-y-2.5">
+                <p className="label">{label}</p>
+                <div className="divide-y divide-shop-line border-t border-shop-line">
+                  {items.map((f, idx) => (
+                    <div
+                      key={`${f.title}-${idx}`}
+                      className="flex items-center justify-between gap-4 py-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="label text-shop-ink border border-shop-line px-2 py-0.5 rounded-[2px] shrink-0">
+                          {getBadgeLabel(f)}
+                        </span>
+                        <span className="text-sm font-light text-shop-ink truncate">
+                          {f.title}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <a
+                        href={resolveAssetUrl(f.url)}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-normal text-shop-ink underline underline-offset-4 decoration-shop-line hover:decoration-shop-ink shrink-0 transition-colors"
+                      >
+                        Pobierz
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })}
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }

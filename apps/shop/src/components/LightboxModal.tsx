@@ -33,46 +33,58 @@ export function LightboxModal({ images, activeIndex, onClose, onSelect }: Props)
       role="dialog"
       aria-modal="true"
       aria-label="Powiększenie zdjęcia produktu"
-      className="fixed inset-0 z-50 bg-shop-navy/90 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-shop-bg/[0.96] backdrop-blur-sm flex flex-col"
     >
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Zamknij podgląd (Esc)"
-        className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
-      >
-        <X className="w-6 h-6" />
-      </button>
+      {/* Górna belka: numeracja + zamknięcie */}
+      <div className="max-w-[1520px] w-full mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
+        <span className="label text-shop-ink tabular-nums">
+          {activeIndex + 1} / {images.length}
+        </span>
 
-      {images.length > 1 && (
         <button
           type="button"
-          onClick={() => onSelect((activeIndex - 1 + images.length) % images.length)}
-          aria-label="Poprzednie zdjęcie"
-          className="absolute left-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
+          onClick={onClose}
+          aria-label="Zamknij podgląd (Esc)"
+          className="p-2 -mr-2 text-shop-ink hover:text-shop-bronze transition-colors"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <X className="w-5 h-5" strokeWidth={1.25} />
         </button>
-      )}
+      </div>
 
-      <img
-        src={resolveAssetUrl(current.url)}
-        alt={current.alt}
-        width={1000}
-        height={1000}
-        className="max-h-[85vh] max-w-[85vw] object-contain bg-white rounded-card p-6"
-      />
+      {/* Obszar zdjęcia */}
+      <div className="flex-1 relative flex items-center justify-center px-6 md:px-20 pb-10">
+        {images.length > 1 && (
+          <button
+            type="button"
+            onClick={() => onSelect((activeIndex - 1 + images.length) % images.length)}
+            aria-label="Poprzednie zdjęcie"
+            className="absolute left-6 md:left-10 w-11 h-11 rounded-[2px] border border-shop-line bg-shop-bg flex items-center justify-center text-shop-ink hover:border-shop-ink transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.25} />
+          </button>
+        )}
 
-      {images.length > 1 && (
-        <button
-          type="button"
-          onClick={() => onSelect((activeIndex + 1) % images.length)}
-          aria-label="Następne zdjęcie"
-          className="absolute right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
-        >
-          <ArrowRight className="w-6 h-6" />
-        </button>
-      )}
+        <div className="max-h-[80vh] max-w-[82vw] flex items-center justify-center">
+          <img
+            src={resolveAssetUrl(current.url)}
+            alt={current.alt}
+            width={1000}
+            height={1000}
+            className="max-h-[80vh] max-w-[82vw] object-contain mix-blend-multiply"
+          />
+        </div>
+
+        {images.length > 1 && (
+          <button
+            type="button"
+            onClick={() => onSelect((activeIndex + 1) % images.length)}
+            aria-label="Następne zdjęcie"
+            className="absolute right-6 md:right-10 w-11 h-11 rounded-[2px] border border-shop-line bg-shop-bg flex items-center justify-center text-shop-ink hover:border-shop-ink transition-colors"
+          >
+            <ArrowRight className="w-4 h-4" strokeWidth={1.25} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

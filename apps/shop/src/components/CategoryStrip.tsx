@@ -1,6 +1,9 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { LayoutGrid, Droplets, Sparkles, Box, Layers, ShieldCheck, Wrench } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { useShop } from "../context/ShopContext";
+import { resolveAssetUrl } from "../lib/api";
+import { ProductPlaceholderSvg } from "./ProductPlaceholderSvg";
 
 interface CategoryItem {
   slug: string;
@@ -8,57 +11,111 @@ interface CategoryItem {
   count: number;
 }
 
-const ICONS = [Droplets, Sparkles, Box, Layers, ShieldCheck, Wrench];
+interface Props {
+  categories: CategoryItem[];
+  variant?: "text" | "tiles";
+}
 
-export function CategoryStrip({ categories }: { categories: CategoryItem[] }) {
+function toCategorySlug(category: string) {
+  return category.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+export function CategoryStrip({ categories, variant = "text" }: Props) {
   const { kategoria } = useParams<{ kategoria?: string }>();
+  const { catalog } = useShop();
+
+  if (variant === "tiles") {
+    if (categories.length === 0) return null;
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        {categories.map((cat) => {
+          const firstProduct = catalog.products.find(
+            (p) => toCategorySlug(p.category) === cat.slug
+          );
+          const firstVariant = firstProduct?.variants[0];
+          const mainImage =
+            firstVariant?.images.find((img) => img.isMain) || firstVariant?.images[0];
+
+          return (
+            <Link
+              key={cat.slug}
+              to={`/sklep/${cat.slug}`}
+              className="group flex flex-col"
+            >
+              <div className="aspect-[4/5] w-full bg-shop-surface rounded-none overflow-hidden flex items-center justify-center p-[12%] mb-4">
+                {mainImage?.url ? (
+                  <img
+                    src={resolveAssetUrl(mainImage.url)}
+                    alt={mainImage.alt || cat.name}
+                    width={420}
+                    height={525}
+                    loading="lazy"
+                    className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
+                  />
+                ) : (
+                  <ProductPlaceholderSvg
+                    name={firstProduct?.name || cat.name}
+                    colorHex={firstVariant?.swatchHex}
+                    className="w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <h3 className="font-display text-[24px] font-normal tracking-[-0.01em] leading-[1.1] text-shop-ink group-hover:text-shop-bronze transition-colors">
+                    {cat.name}
+                  </h3>
+                  <p className="label">{cat.count} prod.</p>
+                </div>
+                <ArrowUpRight
+                  className="w-4 h-4 text-shop-muted group-hover:text-shop-ink group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300 mt-1.5 shrink-0 motion-reduce:transform-none"
+                  strokeWidth={1.25}
+                  aria-hidden="true"
+                />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
-    <section aria-label="Kategorie produktów" className="py-8 md:py-12">
-      <div className="flex items-start gap-6 md:gap-8 overflow-x-auto no-scrollbar pb-2">
+    <nav
+      aria-label="Kategorie produktów"
+      className="border-b border-shop-line py-4 mb-10"
+    >
+      <div className="flex items-center gap-7 md:gap-9 overflow-x-auto no-scrollbar">
         <Link
           to="/sklep"
-          className="group flex flex-col items-center gap-3 shrink-0 w-24 md:w-28 text-center focus:outline-none"
+          className={`shrink-0 pb-2 text-[12px] uppercase tracking-[0.16em] border-b transition-colors -mb-[17px] ${
+            !kategoria
+              ? "border-shop-bronze text-shop-ink font-normal"
+              : "border-transparent text-shop-muted hover:text-shop-ink font-light"
+          }`}
         >
-          <div
-            className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition border ${
-              !kategoria
-                ? "bg-shop-surface border-shop-accent text-shop-navy"
-                : "bg-shop-surface border-transparent text-shop-text group-hover:border-shop-border"
-            }`}
-          >
-            <LayoutGrid className="w-6 h-6 stroke-[1.5]" />
-          </div>
-          <span className="text-xs font-medium text-shop-text leading-tight">
-            Wszystkie kategorie
-          </span>
+          Wszystkie kategorie
         </Link>
 
-        {categories.map((cat, idx) => {
-          const IconComponent = ICONS[idx % ICONS.length];
+        {categories.map((cat) => {
           const isActive = kategoria === cat.slug;
           return (
             <Link
               key={cat.slug}
               to={`/sklep/${cat.slug}`}
-              className="group flex flex-col items-center gap-3 shrink-0 w-24 md:w-28 text-center focus:outline-none"
+              className={`shrink-0 pb-2 text-[12px] uppercase tracking-[0.16em] border-b transition-colors -mb-[17px] ${
+                isActive
+                  ? "border-shop-bronze text-shop-ink font-normal"
+                  : "border-transparent text-shop-muted hover:text-shop-ink font-light"
+              }`}
             >
-              <div
-                className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition border ${
-                  isActive
-                    ? "bg-shop-surface border-shop-accent text-shop-navy"
-                    : "bg-shop-surface border-transparent text-shop-text group-hover:border-shop-border"
-                }`}
-              >
-                <IconComponent className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <span className="text-xs font-medium text-shop-text leading-tight">
-                {cat.name}
-              </span>
+              {cat.name}
             </Link>
           );
         })}
       </div>
-    </section>
+    </nav>
   );
 }

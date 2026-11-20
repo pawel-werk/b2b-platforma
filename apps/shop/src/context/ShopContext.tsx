@@ -30,32 +30,35 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!resolveQuery.data) return;
     const root = document.documentElement;
-    // Domyślnie utrzymujemy barwy biało-granatowe (#0B2545 i #1E5BC6), ustawiając też zmienne marki z API
     const apiPrimary = resolveQuery.data.colors?.primary;
     const apiSecondary = resolveQuery.data.colors?.secondary;
-    root.style.setProperty("--brand-api-primary", apiPrimary || "#0B2545");
-    root.style.setProperty("--brand-api-secondary", apiSecondary || "#1E5BC6");
-    root.style.setProperty("--shop-navy", "#0B2545");
-    root.style.setProperty("--shop-accent", "#1E5BC6");
+    root.style.setProperty("--brand-api-primary", apiPrimary || "#1C1A17");
+    root.style.setProperty("--brand-api-secondary", apiSecondary || "#8C735A");
+    root.style.setProperty("--shop-navy", "#1C1A17");
+    root.style.setProperty("--shop-accent", "#8C735A");
   }, [resolveQuery.data]);
 
   if (resolveQuery.isLoading || (slug && catalogQuery.isLoading)) {
     return (
       <div className="min-h-screen bg-shop-bg">
-        <div className="h-1 bg-shop-navy w-full" />
-        <div className="max-w-[1440px] mx-auto px-6 py-6 flex items-center justify-between border-b border-shop-border">
-          <div className="h-6 w-24 bg-shop-surface animate-pulse rounded" />
-          <div className="h-8 w-40 bg-shop-surface animate-pulse rounded" />
-          <div className="h-6 w-32 bg-shop-surface animate-pulse rounded" />
+        <div className="border-b border-shop-line">
+          <div className="max-w-[1520px] mx-auto px-6 md:px-10 h-16 md:h-20 flex items-center justify-between">
+            <div className="h-4 w-20 bg-shop-surface animate-pulse rounded-[2px]" />
+            <div className="h-6 w-36 bg-shop-surface animate-pulse rounded-[2px]" />
+            <div className="h-4 w-28 bg-shop-surface animate-pulse rounded-[2px]" />
+          </div>
         </div>
-        <div className="max-w-[1440px] mx-auto px-6 py-10 space-y-10">
+        <div className="max-w-[1520px] mx-auto px-6 md:px-10 py-10 md:py-14 space-y-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-4 h-[420px] bg-shop-surface animate-pulse rounded-card" />
-            <div className="lg:col-span-8 h-[420px] bg-shop-surface animate-pulse rounded-card" />
+            <div className="lg:col-span-4 h-[420px] md:h-[520px] bg-shop-surface animate-pulse rounded-[2px]" />
+            <div className="lg:col-span-8 h-[420px] md:h-[520px] bg-shop-surface animate-pulse rounded-[2px]" />
           </div>
           <div className="flex gap-6 overflow-hidden">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="w-28 h-28 rounded-full bg-shop-surface animate-pulse shrink-0" />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-32 h-24 bg-shop-surface animate-pulse rounded-[2px] shrink-0"
+              />
             ))}
           </div>
         </div>
@@ -70,22 +73,25 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       "Nie udało się połączyć z serwerem sklepu.";
 
     return (
-      <div className="min-h-screen bg-shop-bg flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-md w-full bg-shop-surface border border-shop-border rounded-card p-8 space-y-4">
-          <h1 className="text-2xl font-bold text-shop-text tracking-tight">
+      <div className="min-h-screen bg-shop-bg flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="max-w-md w-full border border-shop-line bg-shop-bg rounded-[2px] p-10 md:p-12 space-y-6">
+          <p className="label">Błąd połączenia</p>
+          <h1 className="font-display text-3xl md:text-4xl font-normal tracking-[-0.01em] leading-[1.05] text-shop-ink">
             Przerwa w połączeniu z katalogiem
           </h1>
-          <p className="text-sm text-shop-muted">{errMsg}</p>
-          <button
-            type="button"
-            onClick={() => {
-              resolveQuery.refetch();
-              catalogQuery.refetch();
-            }}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-pill bg-shop-accent text-white font-medium text-sm hover:bg-shop-navy transition focus:outline-none focus:ring-2 focus:ring-shop-accent focus:ring-offset-2"
-          >
-            Spróbuj ponownie
-          </button>
+          <p className="text-sm font-light text-shop-muted leading-relaxed">{errMsg}</p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                resolveQuery.refetch();
+                catalogQuery.refetch();
+              }}
+              className="inline-flex h-12 items-center justify-center px-8 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink"
+            >
+              Spróbuj ponownie
+            </button>
+          </div>
         </div>
       </div>
     );

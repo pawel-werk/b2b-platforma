@@ -9,6 +9,7 @@
     "preview": "vite preview --port 3001"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/figtree": "^5.1.0",
     "@repo/shared": "workspace:*",
     "@tanstack/react-query": "^5.51.0",

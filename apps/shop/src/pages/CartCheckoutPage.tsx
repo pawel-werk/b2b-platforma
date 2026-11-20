@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Truck, Minus, Plus } from "lucide-react";
+import { Trash2, Minus, Plus } from "lucide-react";
 import type { ShippingMethodCode } from "@repo/shared";
 import { useShop } from "../context/ShopContext";
 import { useCartStore } from "../store/cartStore";
@@ -47,12 +47,15 @@ export function CartCheckoutPage() {
 
   const threshold = shop.deliverySettings.freeShippingThresholdGrossGrosze;
   const missingForFreeShipping = Math.max(0, threshold - itemsBruttoGrosze);
+  const freeShippingProgress =
+    threshold > 0 ? Math.min(100, Math.round((itemsBruttoGrosze / threshold) * 100)) : 100;
 
   const methodObj =
     enabledMethods.find((m) => m.method === selectedMethod) || enabledMethods[0];
   const shippingBruttoGrosze =
     threshold > 0 && itemsBruttoGrosze >= threshold ? 0 : methodObj?.priceGrossGrosze ?? 0;
   const totalBruttoGrosze = itemsBruttoGrosze + shippingBruttoGrosze;
+  const totalQty = items.reduce((s, i) => s + i.quantity, 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,129 +96,156 @@ export function CartCheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-16 text-center space-y-4">
-        <h1 className="text-3xl font-normal text-shop-text">Twój koszyk jest pusty</h1>
-        <p className="text-sm text-shop-muted">
+      <main className="max-w-[1520px] mx-auto px-6 md:px-10 py-24 md:py-32 text-center space-y-5">
+        <h1 className="font-display font-normal text-[clamp(36px,4vw,56px)] tracking-[-0.01em] leading-[1.05] text-shop-ink">
+          Twój koszyk jest pusty
+        </h1>
+        <p className="text-sm font-light text-shop-muted">
           Dodaj wybrane produkty z katalogu marki {shop.name}.
         </p>
-        <Link
-          to="/sklep"
-          className="inline-block px-8 py-3.5 rounded-pill bg-shop-accent text-white font-bold text-sm"
-        >
-          Przejdź do sklepu
-        </Link>
+        <div className="pt-2">
+          <Link
+            to="/sklep"
+            className="inline-flex h-12 items-center justify-center px-8 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink"
+          >
+            Przejdź do sklepu
+          </Link>
+        </div>
       </main>
     );
   }
 
+  const editorialInputClass =
+    "w-full bg-transparent border-0 border-b border-shop-line focus:border-shop-bronze focus:outline-none rounded-none py-2 text-sm font-light text-shop-ink placeholder:text-shop-muted/70 transition-colors";
+
   return (
-    <main className="max-w-[1440px] mx-auto px-4 md:px-8 pt-6 pb-16">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Lewa kolumna: Pasek darmowej dostawy + Pozycje koszyka */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="bg-shop-surface border border-shop-border rounded-card px-4 py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium text-shop-text">
-            <Truck className="w-4 h-4 text-shop-accent" />
-            {missingForFreeShipping > 0 ? (
-              <span>
-                Aby otrzymać darmową wysyłkę, potrzebujesz:{" "}
-                <strong>{formatGrosze(missingForFreeShipping)}</strong>
-              </span>
-            ) : (
-              <span className="text-status-availText font-bold">
-                Twoje zamówienie kwalifikuje się do darmowej wysyłki!
-              </span>
+    <main className="max-w-[1520px] mx-auto px-6 md:px-10 pt-8 md:pt-12 pb-20 md:pb-28">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
+        {/* Lewa kolumna: pasek darmowej dostawy + pozycje rozdzielone liniami */}
+        <div className="lg:col-span-8 space-y-10">
+          <div className="space-y-6">
+            <h1 className="font-display font-normal text-[clamp(36px,4vw,56px)] tracking-[-0.01em] leading-[1.05] text-shop-ink">
+              Twój koszyk <span className="text-shop-muted">({totalQty})</span>
+            </h1>
+
+            {threshold > 0 && (
+              <div className="space-y-2.5">
+                <p className="text-xs font-light text-shop-muted">
+                  {missingForFreeShipping > 0 ? (
+                    <>
+                      Do darmowej dostawy brakuje:{" "}
+                      <span className="font-normal text-shop-ink tabular-nums">
+                        {formatGrosze(missingForFreeShipping)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-status-avail font-normal">
+                      Twoje zamówienie kwalifikuje się do darmowej wysyłki.
+                    </span>
+                  )}
+                </p>
+                <div className="h-px w-full bg-shop-line overflow-hidden" aria-hidden="true">
+                  <div
+                    className="h-full bg-shop-bronze transition-[width] duration-500 ease-out motion-reduce:transition-none"
+                    style={{ width: `${freeShippingProgress}%` }}
+                  />
+                </div>
+              </div>
             )}
           </div>
 
-          <h1 className="text-3xl font-normal text-shop-text">
-            Twój koszyk ({items.reduce((s, i) => s + i.quantity, 0)})
-          </h1>
-
-          <div className="space-y-4">
+          <div className="divide-y divide-shop-line border-t border-b border-shop-line">
             {items.map((item) => (
               <div
                 key={item.variantId}
-                className="p-5 rounded-card border border-shop-border bg-white flex flex-col sm:flex-row gap-6 relative"
+                className="py-8 flex flex-col sm:flex-row gap-6 sm:gap-8"
               >
                 <Link
                   to={`/produkt/${item.productSlug}?kolor=${item.colorCode}`}
-                  className="w-28 h-32 bg-shop-surface rounded-lg p-3 flex items-center justify-center shrink-0"
+                  className="w-24 sm:w-28 aspect-[4/5] bg-shop-surface rounded-none p-3 flex items-center justify-center shrink-0"
                 >
                   <img
                     src={resolveAssetUrl(item.imageUrl)}
                     alt={item.productName}
-                    width={110}
-                    height={120}
-                    className="w-full h-full object-contain"
+                    width={112}
+                    height={140}
+                    className="w-full h-full object-contain mix-blend-multiply"
                   />
                 </Link>
 
-                <div className="flex-1 space-y-1.5">
-                  <div className="flex items-start justify-between gap-4">
-                    <Link
-                      to={`/produkt/${item.productSlug}?kolor=${item.colorCode}`}
-                      className="font-bold text-base text-shop-text hover:text-shop-accent"
-                    >
-                      {item.productName}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(shop.slug, item.variantId)}
-                      aria-label="Usuń pozycję z koszyka"
-                      className="p-2 rounded-full bg-shop-surface hover:bg-shop-border text-shop-muted hover:text-shop-text"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-shop-muted">
-                    {item.category} {item.collection ? `• ${item.collection}` : ""}
-                  </p>
-                  <p className="text-xs text-shop-muted">Kod produktu: {item.symbol}</p>
-
-                  <div className="flex items-center gap-2 pt-1 text-xs text-shop-text">
-                    <span className="font-bold">Kolor:</span>
-                    <span
-                      className="w-3.5 h-3.5 rounded-full inline-block border border-black/15"
-                      style={{ backgroundColor: item.swatchHex }}
-                    />
-                    <span>
-                      {item.colorName} ({item.colorCode})
-                    </span>
-                  </div>
-
-                  <div className="pt-3 flex items-center gap-6">
-                    <div>
-                      <span className="font-bold text-base text-shop-text">
-                        {formatGrosze(item.bruttoGrosze * item.quantity)}
-                      </span>
-                      <span className="text-xs text-shop-muted ml-1.5">
-                        ({formatGrosze(item.nettoGrosze * item.quantity)} netto)
-                      </span>
+                <div className="flex-1 flex flex-col justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-4">
+                      <Link
+                        to={`/produkt/${item.productSlug}?kolor=${item.colorCode}`}
+                        className="font-display text-[22px] font-normal tracking-[-0.01em] leading-[1.1] text-shop-ink hover:text-shop-bronze transition-colors"
+                      >
+                        {item.productName}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(shop.slug, item.variantId)}
+                        aria-label="Usuń pozycję z koszyka"
+                        className="p-1.5 -mr-1.5 text-shop-muted hover:text-shop-ink transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" strokeWidth={1.25} />
+                      </button>
                     </div>
 
-                    <div className="inline-flex items-center border border-shop-border rounded-pill px-2.5 py-1">
+                    <p className="label">
+                      {item.category}
+                      {item.collection ? ` · ${item.collection}` : ""}
+                    </p>
+                    <p className="text-xs font-light text-shop-muted tabular-nums">
+                      Kod produktu: {item.symbol}
+                    </p>
+
+                    <div className="flex items-center gap-2 pt-1 text-xs font-light text-shop-ink">
+                      <span className="text-shop-muted">Kolor:</span>
+                      <span
+                        className="w-3 h-3 rounded-full inline-block border border-shop-ink/15"
+                        style={{ backgroundColor: item.swatchHex }}
+                      />
+                      <span>
+                        {item.colorName} ({item.colorCode})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                    <div className="inline-flex items-center border-b border-shop-line py-1">
                       <button
                         type="button"
                         onClick={() =>
                           updateQuantity(shop.slug, item.variantId, item.quantity - 1)
                         }
                         aria-label="Zmniejsz ilość"
-                        className="p-1 text-shop-text"
+                        className="p-1.5 text-shop-ink hover:text-shop-bronze transition-colors"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3 h-3" strokeWidth={1.25} />
                       </button>
-                      <span className="w-8 text-center text-xs font-bold">{item.quantity}</span>
+                      <span className="w-9 text-center text-xs font-normal text-shop-ink tabular-nums">
+                        {item.quantity}
+                      </span>
                       <button
                         type="button"
                         onClick={() =>
                           updateQuantity(shop.slug, item.variantId, item.quantity + 1)
                         }
                         aria-label="Zwiększ ilość"
-                        className="p-1 text-shop-text"
+                        className="p-1.5 text-shop-ink hover:text-shop-bronze transition-colors"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3" strokeWidth={1.25} />
                       </button>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-base font-normal text-shop-ink tabular-nums">
+                        {formatGrosze(item.bruttoGrosze * item.quantity)}
+                      </p>
+                      <p className="text-[11px] font-light text-shop-muted tabular-nums">
+                        {formatGrosze(item.nettoGrosze * item.quantity)} netto
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -224,40 +254,44 @@ export function CartCheckoutPage() {
           </div>
         </div>
 
-        {/* Prawa kolumna: Podsumowanie i formularz zamówienia */}
-        <div className="lg:col-span-4 border border-shop-border rounded-card p-6 bg-white space-y-6">
-          <h2 className="text-2xl font-normal text-shop-text">Podsumowanie</h2>
+        {/* Prawa kolumna: sticky, tło surface, bez obramowania */}
+        <aside className="lg:col-span-4 lg:sticky lg:top-28 bg-shop-surface p-8 md:p-10 space-y-8 rounded-none">
+          <h2 className="font-display text-[28px] font-normal tracking-[-0.01em] leading-[1.05] text-shop-ink">
+            Podsumowanie
+          </h2>
 
-          <div className="space-y-3 text-sm border-b border-shop-border pb-4">
-            <div className="flex justify-between">
-              <span className="text-shop-muted">
-                Suma częściowa ({items.reduce((s, i) => s + i.quantity, 0)})
+          <div className="space-y-3.5 text-sm border-b border-shop-line pb-6">
+            <div className="flex justify-between items-start gap-4">
+              <span className="font-light text-shop-muted">
+                Suma częściowa ({totalQty})
               </span>
               <div className="text-right">
-                <p className="font-semibold text-shop-text">{formatGrosze(itemsBruttoGrosze)}</p>
-                <p className="text-[11px] text-shop-muted">
-                  ({formatGrosze(itemsNettoGrosze)} netto)
+                <p className="font-normal text-shop-ink tabular-nums">
+                  {formatGrosze(itemsBruttoGrosze)}
+                </p>
+                <p className="text-[11px] font-light text-shop-muted tabular-nums">
+                  {formatGrosze(itemsNettoGrosze)} netto
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-shop-muted">Dostawa</span>
-              <span className="font-semibold text-shop-text">
+            <div className="flex justify-between items-center gap-4">
+              <span className="font-light text-shop-muted">Dostawa</span>
+              <span className="font-normal text-shop-ink tabular-nums">
                 {formatGrosze(shippingBruttoGrosze)}
               </span>
             </div>
           </div>
 
-          <div className="flex justify-between items-baseline">
-            <span className="font-bold text-base text-shop-text">Suma</span>
+          <div className="flex justify-between items-baseline gap-4">
+            <span className="label text-shop-ink">Suma</span>
             <div className="text-right">
-              <span className="font-bold text-lg text-shop-text">
+              <p className="font-display text-[32px] font-normal tracking-[-0.01em] leading-none text-shop-ink tabular-nums">
                 {formatGrosze(totalBruttoGrosze)}
-              </span>
-              <span className="text-xs text-shop-muted ml-1">
-                (zawiera {formatGrosze(vatGrosze)} VAT)
-              </span>
+              </p>
+              <p className="text-[11px] font-light text-shop-muted tabular-nums mt-1.5">
+                zawiera {formatGrosze(vatGrosze)} VAT
+              </p>
             </div>
           </div>
 
@@ -265,157 +299,202 @@ export function CartCheckoutPage() {
             <button
               type="button"
               onClick={() => setShowCheckoutForm(true)}
-              className="w-full py-3.5 px-6 rounded-pill bg-shop-navy hover:bg-shop-accent text-white font-bold text-sm transition"
+              className="w-full h-12 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink"
             >
               Przejdź do kasy
             </button>
           ) : (
-            <form onSubmit={handleCheckout} className="space-y-4 pt-4 border-t border-shop-border">
-              <h3 className="font-bold text-sm text-shop-text">Dane odbiorcy i dostawa</h3>
+            <form onSubmit={handleCheckout} className="space-y-6 pt-6 border-t border-shop-line">
+              <h3 className="label text-shop-ink">Dane odbiorcy i dostawa</h3>
 
+              {/* Metody dostawy jako wiersze z radiem i linią */}
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-shop-muted">Metoda dostawy</label>
-                {enabledMethods.map((m) => (
-                  <label
-                    key={m.method}
-                    className="flex items-center justify-between p-2.5 border border-shop-border rounded-lg text-xs cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2 font-medium">
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        checked={selectedMethod === m.method}
-                        onChange={() => setSelectedMethod(m.method)}
-                        className="accent-shop-accent"
-                      />
-                      {m.label}
-                    </span>
-                    <span className="font-bold">{formatGrosze(m.priceGrossGrosze)}</span>
-                  </label>
-                ))}
+                <p className="label">Metoda dostawy</p>
+                <div className="divide-y divide-shop-line border-t border-b border-shop-line">
+                  {enabledMethods.map((m) => (
+                    <label
+                      key={m.method}
+                      className="flex items-center justify-between gap-3 py-3 text-xs cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2.5 font-light text-shop-ink">
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          checked={selectedMethod === m.method}
+                          onChange={() => setSelectedMethod(m.method)}
+                          className="accent-shop-ink"
+                        />
+                        {m.label}
+                      </span>
+                      <span className="font-normal text-shop-ink tabular-nums">
+                        {formatGrosze(m.priceGrossGrosze)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  required
-                  placeholder="Imię"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="border border-shop-border rounded-lg p-2.5 text-sm"
-                />
-                <input
-                  required
-                  placeholder="Nazwisko"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="border border-shop-border rounded-lg p-2.5 text-sm"
-                />
-              </div>
-
-              <input
-                required
-                type="email"
-                placeholder="Adres e-mail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-              />
-              <input
-                required
-                placeholder="Telefon kontaktowy"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-              />
-
-              {selectedMethod === "courier" && (
-                <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <label className="block space-y-1">
+                  <span className="label block">Imię</span>
                   <input
                     required
-                    placeholder="Ulica i numer"
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={editorialInputClass}
                   />
-                  <div className="grid grid-cols-2 gap-3">
+                </label>
+                <label className="block space-y-1">
+                  <span className="label block">Nazwisko</span>
+                  <input
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className={editorialInputClass}
+                  />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="label block">Adres e-mail</span>
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={editorialInputClass}
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="label block">Telefon kontaktowy</span>
+                <input
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={editorialInputClass}
+                />
+              </label>
+
+              {selectedMethod === "courier" && (
+                <div className="space-y-5">
+                  <label className="block space-y-1">
+                    <span className="label block">Ulica i numer</span>
                     <input
                       required
-                      placeholder="Kod pocztowy"
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      className="border border-shop-border rounded-lg p-2.5 text-sm"
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      className={editorialInputClass}
                     />
-                    <input
-                      required
-                      placeholder="Miejscowość"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="border border-shop-border rounded-lg p-2.5 text-sm"
-                    />
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <label className="block space-y-1">
+                      <span className="label block">Kod pocztowy</span>
+                      <input
+                        required
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        className={editorialInputClass}
+                      />
+                    </label>
+                    <label className="block space-y-1">
+                      <span className="label block">Miejscowość</span>
+                      <input
+                        required
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className={editorialInputClass}
+                      />
+                    </label>
                   </div>
                 </div>
               )}
 
               {selectedMethod === "locker" && (
-                <input
-                  required
-                  placeholder="Kod paczkomatu (np. WRO01M)"
-                  value={lockerCode}
-                  onChange={(e) => setLockerCode(e.target.value)}
-                  className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-                />
+                <label className="block space-y-1">
+                  <span className="label block">Kod paczkomatu</span>
+                  <input
+                    required
+                    placeholder="np. WRO01M"
+                    value={lockerCode}
+                    onChange={(e) => setLockerCode(e.target.value)}
+                    className={editorialInputClass}
+                  />
+                </label>
               )}
 
-              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+              <label className="flex items-center gap-2.5 text-xs font-light text-shop-ink cursor-pointer">
                 <input
                   type="checkbox"
                   checked={wantInvoice}
                   onChange={(e) => setWantInvoice(e.target.checked)}
-                  className="accent-shop-accent"
+                  className="accent-shop-ink"
                 />
-                Chcę otrzymać fakturę VAT na firmę
+                <span>Chcę otrzymać fakturę VAT na firmę</span>
               </label>
 
               {wantInvoice && (
-                <div className="space-y-3">
-                  <input
-                    required
-                    placeholder="Nazwa firmy"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-                  />
-                  <input
-                    required
-                    placeholder="NIP (10 cyfr)"
-                    value={nip}
-                    onChange={(e) => setNip(e.target.value)}
-                    className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-                  />
+                <div className="space-y-5">
+                  <label className="block space-y-1">
+                    <span className="label block">Nazwa firmy</span>
+                    <input
+                      required
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className={editorialInputClass}
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="label block">NIP (10 cyfr)</span>
+                    <input
+                      required
+                      value={nip}
+                      onChange={(e) => setNip(e.target.value)}
+                      className={editorialInputClass}
+                    />
+                  </label>
                 </div>
               )}
 
-              <textarea
-                placeholder="Uwagi do zamówienia (opcjonalnie)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                className="w-full border border-shop-border rounded-lg p-2.5 text-sm"
-              />
+              <label className="block space-y-1">
+                <span className="label block">Uwagi do zamówienia (opcjonalnie)</span>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className={`${editorialInputClass} resize-none`}
+                />
+              </label>
 
-              <label className="flex items-start gap-2 text-xs text-shop-muted cursor-pointer">
+              <label className="flex items-start gap-2.5 text-xs font-light text-shop-muted cursor-pointer leading-relaxed">
                 <input
                   required
                   type="checkbox"
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 accent-shop-accent"
+                  className="mt-0.5 accent-shop-ink"
                 />
-                <span>Akceptuję regulamin sklepu oraz politykę prywatności (wymagane).</span>
+                <span>
+                  Akceptuję{" "}
+                  <Link
+                    to="/regulamin"
+                    className="text-shop-ink underline underline-offset-4 decoration-shop-line"
+                  >
+                    regulamin sklepu
+                  </Link>{" "}
+                  oraz{" "}
+                  <Link
+                    to="/polityka-prywatnosci"
+                    className="text-shop-ink underline underline-offset-4 decoration-shop-line"
+                  >
+                    politykę prywatności
+                  </Link>{" "}
+                  (wymagane).
+                </span>
               </label>
 
               {errorMsg && (
-                <p className="text-xs font-semibold text-status-unavailText bg-status-unavailBg p-3 rounded-lg">
+                <p className="border-l-2 border-status-unavail pl-3.5 py-1 text-xs font-normal text-status-unavail leading-relaxed">
                   {errorMsg}
                 </p>
               )}
@@ -423,23 +502,25 @@ export function CartCheckoutPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 px-6 rounded-pill bg-shop-accent hover:bg-shop-navy text-white font-bold text-sm transition disabled:opacity-50"
+                className="w-full h-12 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {submitting ? "Składanie zamówienia..." : "Zamawiam i płacę"}
               </button>
             </form>
           )}
-        </div>
+        </aside>
       </div>
 
-      <div className="mt-16">
-        
+      {catalog.products.length > 0 && (
+        <div className="mt-20 md:mt-28 pt-20 md:pt-28 border-t border-shop-line">
+          
 
 <ProductCarousel
-          title="Inne osoby również kupiły te produkty"
-          products={catalog.products.slice(0, 6)}
-        />
-      </div>
+            title="Inne osoby również kupiły te produkty"
+            products={catalog.products.slice(0, 6)}
+          />
+        </div>
+      )}
     </main>
   );
 }

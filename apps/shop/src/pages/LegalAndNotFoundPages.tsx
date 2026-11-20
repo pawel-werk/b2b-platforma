@@ -10,14 +10,22 @@ export function LegalPage({ title }: { title: string }) {
   }, [title, shop.name]);
 
   return (
-    <main className="max-w-3xl mx-auto px-4 md:px-8 py-16 space-y-6">
-      <h1 className="text-3xl font-bold text-shop-text">{title}</h1>
-      <div className="p-6 rounded-card bg-shop-surface border border-shop-border space-y-3 text-sm text-shop-muted leading-relaxed">
-        <p className="font-semibold text-shop-text">
-          Administratorem i sprzedawcą w sklepie {shop.name} jest {shop.seller.companyName} ({shop.seller.address}, NIP: {shop.seller.nip}).
+    <main className="max-w-[68ch] mx-auto px-6 md:px-10 py-20 md:py-28 space-y-8">
+      <header className="space-y-3">
+        <p className="label">Informacje prawne</p>
+        <h1 className="font-display font-normal text-[clamp(36px,4vw,56px)] tracking-[-0.01em] leading-[1.05] text-shop-ink">
+          {title}
+        </h1>
+      </header>
+
+      <div className="pt-8 border-t border-shop-line space-y-4 text-sm md:text-base font-light text-shop-muted leading-relaxed">
+        <p className="font-normal text-shop-ink">
+          Administratorem i sprzedawcą w sklepie {shop.name} jest{" "}
+          {shop.seller.companyName} ({shop.seller.address}, NIP: {shop.seller.nip}).
         </p>
         <p>
-          Strona zastępcza dokumentu „{title}” przygotowana do uzupełnienia pełną treścią prawną przed startem produkcyjnym.
+          Strona zastępcza dokumentu „{title}” przygotowana do uzupełnienia pełną
+          treścią prawną przed startem produkcyjnym.
         </p>
       </div>
     </main>
@@ -32,18 +40,22 @@ export function NotFoundPage() {
   }, [shop.name]);
 
   return (
-    <main className="max-w-xl mx-auto px-4 py-24 text-center space-y-5">
-      <p className="text-sm font-bold uppercase tracking-widest text-shop-accent">Błąd 404</p>
-      <h1 className="text-3xl font-bold text-shop-text">Strona nie została znaleziona</h1>
-      <p className="text-sm text-shop-muted">
+    <main className="max-w-xl mx-auto px-6 py-24 md:py-32 text-center space-y-6">
+      <p className="label text-shop-bronze">Błąd 404</p>
+      <h1 className="font-display font-normal text-[clamp(36px,4vw,56px)] tracking-[-0.01em] leading-[1.05] text-shop-ink">
+        Strona nie została znaleziona
+      </h1>
+      <p className="text-sm font-light text-shop-muted leading-relaxed">
         Adres, którego szukasz, nie istnieje lub został przeniesiony.
       </p>
-      <Link
-        to="/"
-        className="inline-block px-6 py-3 rounded-pill bg-shop-accent text-white font-bold text-sm"
-      >
-        Wróć na stronę główną
-      </Link>
+      <div className="pt-2">
+        <Link
+          to="/"
+          className="inline-flex h-12 items-center justify-center px-8 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink"
+        >
+          Wróć na stronę główną
+        </Link>
+      </div>
     </main>
   );
 }
