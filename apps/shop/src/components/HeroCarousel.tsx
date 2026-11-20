@@ -68,23 +68,23 @@ export function HeroCarousel({ banners }: Props) {
         }
         @keyframes heroSlowZoom {
           from { transform: scale(1); }
-          to { transform: scale(1.05); }
+          to { transform: scale(1.04); }
         }
       `}</style>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 rounded-none border border-shop-line">
         {/* Lewy panel 4/12: surface-deep z tekstem ink */}
-        <div className="lg:col-span-4 bg-shop-surfaceDeep text-shop-ink p-8 md:p-12 xl:p-14 flex flex-col justify-between min-h-[380px] lg:min-h-[min(78vh,760px)]">
-          <div className="space-y-6 my-auto">
-            <h1 className="font-display font-normal text-[clamp(40px,4.6vw,72px)] leading-[1.02] tracking-[-0.01em] text-shop-ink">
+        <div className="lg:col-span-4 bg-shop-surfaceDeep text-shop-ink p-8 md:p-10 xl:p-12 flex flex-col justify-between lg:h-[460px] xl:h-[520px]">
+          <div className="space-y-5 my-auto">
+            <h1 className="font-display font-normal text-[clamp(36px,3.8vw,58px)] leading-[1.03] tracking-[-0.01em] text-shop-ink">
               {current.title}
             </h1>
             {current.subtitle && (
-              <p className="font-sans font-light text-[16px] text-shop-ink/75 max-w-[38ch] leading-relaxed">
+              <p className="font-sans font-light text-[15px] text-shop-ink/75 max-w-[38ch] leading-relaxed">
                 {current.subtitle}
               </p>
             )}
-            <div className="pt-4">
+            <div className="pt-3">
               <Link
                 to={targetHref}
                 className="inline-flex h-12 items-center justify-center gap-2.5 px-7 rounded-[2px] border border-shop-ink bg-shop-ink text-shop-bg text-[12px] font-normal uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-transparent hover:text-shop-ink"
@@ -98,7 +98,7 @@ export function HeroCarousel({ banners }: Props) {
           {/* Cienkie poziome kreski 24px x 1px z postępem autoplay */}
           {count > 1 && (
             <div
-              className="flex items-center gap-3 pt-10"
+              className="flex items-center gap-3 pt-6"
               role="tablist"
               aria-label="Wybór slajdu"
             >
@@ -138,8 +138,8 @@ export function HeroCarousel({ banners }: Props) {
           )}
         </div>
 
-        {/* Prawy panel 8/12: wszystkie zdjęcia ułożone na sobie z crossfade 900ms i powolnym zoomem 8s */}
-        <div className="lg:col-span-8 bg-shop-surface overflow-hidden min-h-[340px] sm:min-h-[440px] lg:min-h-[min(78vh,760px)] relative">
+        {/* Prawy panel 8/12: proporcje dopasowane do szerokich banerów */}
+        <div className="lg:col-span-8 bg-shop-surface overflow-hidden aspect-[16/9] lg:aspect-auto lg:h-[460px] xl:h-[520px] relative">
           {activeBanners.map((banner, i) => {
             const isActive = i === index;
             return (
@@ -155,7 +155,7 @@ export function HeroCarousel({ banners }: Props) {
                   alt={banner.title}
                   width={1100}
                   height={520}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                   style={
                     isActive && !reducedMotion
                       ? {
