@@ -55,7 +55,7 @@ export function CategoryStrip({ categories, variant = "text" }: Props) {
                   />
                 ) : (
                   <ProductPlaceholderSvg
-                    name={firstProduct?.name || cat.name}
+                    name={`${cat.name} ${firstProduct?.name || ""}`}
                     colorHex={firstVariant?.swatchHex}
                     className="w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
                   />
@@ -85,12 +85,12 @@ export function CategoryStrip({ categories, variant = "text" }: Props) {
   return (
     <nav
       aria-label="Kategorie produktów"
-      className="border-b border-shop-line py-4 mb-10"
+      className="border-b border-shop-line mb-10"
     >
-      <div className="flex items-center gap-7 md:gap-9 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-7 md:gap-9 overflow-x-auto no-scrollbar -mb-px">
         <Link
           to="/sklep"
-          className={`shrink-0 pb-2 text-[12px] uppercase tracking-[0.16em] border-b transition-colors -mb-[17px] ${
+          className={`shrink-0 py-3.5 text-[12px] uppercase tracking-[0.16em] border-b transition-colors ${
             !kategoria
               ? "border-shop-bronze text-shop-ink font-normal"
               : "border-transparent text-shop-muted hover:text-shop-ink font-light"
@@ -105,7 +105,7 @@ export function CategoryStrip({ categories, variant = "text" }: Props) {
             <Link
               key={cat.slug}
               to={`/sklep/${cat.slug}`}
-              className={`shrink-0 pb-2 text-[12px] uppercase tracking-[0.16em] border-b transition-colors -mb-[17px] ${
+              className={`shrink-0 py-3.5 text-[12px] uppercase tracking-[0.16em] border-b transition-colors ${
                 isActive
                   ? "border-shop-bronze text-shop-ink font-normal"
                   : "border-transparent text-shop-muted hover:text-shop-ink font-light"
