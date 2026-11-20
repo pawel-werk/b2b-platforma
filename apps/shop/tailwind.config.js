@@ -27,11 +27,11 @@ export default {
         },
         status: {
           avail: "#1E7E34",
-          order: "#D4660F",
+          order: "#E09412",
           unavail: "#C42B23",
           availText: "#1E7E34",
           availBg: "transparent",
-          orderText: "#D4660F",
+          orderText: "#E09412",
           orderBg: "transparent",
           unavailText: "#C42B23",
           unavailBg: "transparent",
