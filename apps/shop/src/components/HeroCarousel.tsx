@@ -2,17 +2,27 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import type { BannerDto } from "@repo/shared";
+import { useShop } from "../context/ShopContext";
 import { resolveAssetUrl } from "../lib/api";
+import { ProductPlaceholderSvg } from "./ProductPlaceholderSvg";
 
 interface Props {
   banners: BannerDto[];
 }
 
+function isGeneratedSvgBanner(url?: string | null): boolean {
+  if (!url) return true;
+  const lower = url.toLowerCase();
+  return lower.startsWith("data:image/svg") || lower.includes(".svg");
+}
+
 export function HeroCarousel({ banners }: Props) {
+  const { catalog } = useShop();
   const activeBanners = banners.filter((b) => b.isActive);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -138,10 +148,20 @@ export function HeroCarousel({ banners }: Props) {
           )}
         </div>
 
-        {/* Prawy panel 8/12: proporcje dopasowane do szerokich banerów */}
+        {/* Prawy panel 8/12: prawdziwe zdjęcie lub czysty kadr produktowy Quiet Luxury */}
         <div className="lg:col-span-8 bg-shop-surface overflow-hidden aspect-[16/9] lg:aspect-auto lg:h-[460px] xl:h-[520px] relative">
           {activeBanners.map((banner, i) => {
             const isActive = i === index;
+            const useEditorialFallback =
+              isGeneratedSvgBanner(banner.imageUrl) || failedImages[banner.id];
+
+            const fallbackProduct =
+              catalog.products[i % Math.max(1, catalog.products.length)];
+            const fallbackVariant = fallbackProduct?.variants[0];
+            const fallbackImg =
+              fallbackVariant?.images.find((img) => img.isMain) ||
+              fallbackVariant?.images[0];
+
             return (
               <div
                 key={banner.id}
@@ -150,21 +170,52 @@ export function HeroCarousel({ banners }: Props) {
                   isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                 }`}
               >
-                <img
-                  src={resolveAssetUrl(banner.imageUrl)}
-                  alt={banner.title}
-                  width={1100}
-                  height={520}
-                  className="w-full h-full object-cover object-center"
-                  style={
-                    isActive && !reducedMotion
-                      ? {
-                          animation: "heroSlowZoom 8000ms ease-out forwards",
-                          animationPlayState: paused ? "paused" : "running",
+                {useEditorialFallback ? (
+                  <div className="w-full h-full bg-shop-surface flex items-center justify-center p-10 md:p-16">
+                    {fallbackImg?.url ? (
+                      <img
+                        src={resolveAssetUrl(fallbackImg.url)}
+                        alt={banner.title}
+                        width={1100}
+                        height={520}
+                        className="max-h-full max-w-full object-contain mix-blend-multiply"
+                        style={
+                          isActive && !reducedMotion
+                            ? {
+                                animation: "heroSlowZoom 8000ms ease-out forwards",
+                                animationPlayState: paused ? "paused" : "running",
+                              }
+                            : undefined
                         }
-                      : undefined
-                  }
-                />
+                      />
+                    ) : (
+                      <ProductPlaceholderSvg
+                        name={fallbackProduct?.name || banner.title}
+                        colorHex={fallbackVariant?.swatchHex}
+                        className="w-64 h-64"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <img
+                    src={resolveAssetUrl(banner.imageUrl)}
+                    alt={banner.title}
+                    width={1100}
+                    height={520}
+                    onError={() =>
+                      setFailedImages((prev) => ({ ...prev, [banner.id]: true }))
+                    }
+                    className="w-full h-full object-cover object-center"
+                    style={
+                      isActive && !reducedMotion
+                        ? {
+                            animation: "heroSlowZoom 8000ms ease-out forwards",
+                            animationPlayState: paused ? "paused" : "running",
+                          }
+                        : undefined
+                    }
+                  />
+                )}
               </div>
             );
           })}
