@@ -153,3 +153,25 @@ export async function duplicateProduct(id: string) {
   } catch {}
   return true;
 }
+
+export async function deleteProduct(id: string) {
+  const deleted = await db
+    .delete(products)
+    .where(eq(products.id, id))
+    .returning({ id: products.id, brandId: products.brandId });
+
+  if (!deleted.length) {
+    return { success: false };
+  }
+
+  const brandId = deleted[0].brandId;
+  await db.execute(sql`UPDATE brands SET content_version = COALESCE(content_version, 1) + 1 WHERE id = ${brandId}`);
+
+  try {
+    revalidatePath("/panel/katalog");
+    revalidatePath(`/panel/katalog/${brandId}`);
+    revalidateTag(`brand-${brandId}`);
+  } catch {}
+
+  return { success: true, brandId };
+}

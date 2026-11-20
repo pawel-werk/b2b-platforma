@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { saveProduct } from "@/actions/catalog";
+import { saveProduct, deleteProduct } from "@/actions/catalog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { UploadCloud, X, ArrowUp, ArrowDown, FileText } from "lucide-react";
+import { UploadCloud, X, ArrowUp, ArrowDown, FileText, Trash2 } from "lucide-react";
 
 type ImgType = { url: string; alt: string; isMain: boolean };
 type FileType = { url: string; name: string; type: string };
@@ -11,6 +11,7 @@ type FileType = { url: string; name: string; type: string };
 export function ProductForm({ brand, initialData, b2bData }: { brand: any, initialData?: any, b2bData: any[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
@@ -105,6 +106,30 @@ export function ProductForm({ brand, initialData, b2bData }: { brand: any, initi
       toast.error("Wystąpił błąd zapisu.");
     }
     setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+    const confirmed = window.confirm(
+      `Czy na pewno chcesz trwale usunąć produkt „${initialData.name}”? Tej operacji nie można cofnąć.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const res = await deleteProduct(initialData.id);
+      if (res.success) {
+        toast.success(`Usunięto produkt „${initialData.name}”.`);
+        router.push(`/panel/katalog/${brand.id}`);
+        router.refresh();
+      } else {
+        toast.error("Nie znaleziono produktu do usunięcia.");
+        setDeleting(false);
+      }
+    } catch {
+      toast.error("Wystąpił błąd podczas usuwania produktu.");
+      setDeleting(false);
+    }
   };
 
   return (
@@ -264,9 +289,25 @@ export function ProductForm({ brand, initialData, b2bData }: { brand: any, initi
           </div>
         </div>
 
-        <button disabled={loading} type="submit" className="w-full bg-brand-primary text-white font-bold py-4 rounded-pill hover:bg-opacity-90 transition shadow-md">
+        <button
+          disabled={loading || deleting}
+          type="submit"
+          className="w-full bg-brand-primary text-white font-bold py-4 rounded-pill hover:bg-opacity-90 transition shadow-md disabled:opacity-50"
+        >
           {loading ? "Zapisywanie..." : "Zapisz i publikuj"}
         </button>
+
+        {initialData?.id && (
+          <button
+            type="button"
+            disabled={loading || deleting}
+            onClick={handleDelete}
+            className="w-full flex items-center justify-center gap-2 border border-red-300 bg-white text-red-600 font-bold py-3.5 rounded-pill hover:bg-red-50 transition disabled:opacity-50"
+          >
+            <Trash2 size={18} />
+            <span>{deleting ? "Usuwanie..." : "Usuń produkt"}</span>
+          </button>
+        )}
       </div>
     </form>
   );
